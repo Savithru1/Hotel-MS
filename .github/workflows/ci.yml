@@ -25,4 +25,13 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm lint
       - run: pnpm typecheck
+
+      # The backend tests run against an in-memory MongoDB replica set whose binary
+      # (about 780 MB) is downloaded on first use. Cache it so it is fetched once.
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/mongodb-binaries
+          key: mongodb-binaries-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: mongodb-binaries-${{ runner.os }}-
+
       - run: pnpm test

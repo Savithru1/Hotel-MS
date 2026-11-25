@@ -1,7 +1,13 @@
 packages:
   - 'apps/*'
   - 'packages/*'
+allowBuilds:
+  '@scarf/scarf': false
+  esbuild: false
+  mongodb-memory-server: false
 minimumReleaseAgeExclude:
   - '@vitest/mocker@5.1.2'
   - '@vitest/spy@5.1.2'
   - vitest@5.1.2
+  - '@vitest/coverage-v8@5.1.2'
+  - mongoose@9.13.1

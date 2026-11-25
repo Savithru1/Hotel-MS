@@ -11,13 +11,15 @@ Legend: `[x]` done and verified, `[ ]` not done. A task being worked on right no
 ## RESUME POINT (update this block every time)
 
 - **Last updated:** 2026-11-25
-- **Current phase / sub-phase:** Phase 1, **P1.1 Project setup** (started 2026-11-25 on the owner's go-ahead).
-- **Currently in progress:** nothing. **P1.1 is finished and verified.**
-- **Next action:** start **P1.2 Backend core** (first unchecked item in the Phase 1 list). Before writing code, run `pnpm install`, and `pnpm db:up` when a database is needed (Docker Desktop must be running; it is installed per-user and was started by hand on 2026-11-25).
+- **Current phase / sub-phase:** Phase 1, **P1.2 Backend core is DONE**; **P1.3 Authentication and staff access is next** (not started). Owner said **do NOT push anything yet**.
+- **Currently in progress:** nothing. P1.2 is finished and verified.
+- **Next action:** start **P1.3 Authentication and staff access** when the owner says go. Run `pnpm install`; `pnpm db:up` is only needed to run the real server (tests use their own in-memory database). Docker Desktop must be running for `db:up`.
 - **Blockers / open questions for the owner:** none for P1.1 or P1.2. Open items are in section "Open items" at the bottom.
 - **Git / push status:** local git repo on branch `main` is initialised and committed. **No remote is configured yet**: the owner chose "not yet" on 2026-11-25 when asked about creating a private GitHub repo. Until a remote exists, commit locally after each update and mention in the session log that nothing was pushed. Ask the owner again about a remote at the start of P1.1.
-- **State of the code:** the monorepo skeleton and tooling exist (no application logic yet). `apps/*` and `packages/shared-types|validation` contain only an empty `src/index.ts` placeholder, so their `vitest --passWithNoTests` runs pass vacuously until tests are added in P1.2 onwards. `packages/constants` has the staff roles and room statuses with tests. `tests/repo-structure.test.ts` enforces the folder layout, the Phase 1 scope boundary, and MongoDB-only.
-- **Toolchain facts:** Node 24, pnpm 12.23.0 (installed globally with npm), TypeScript 6.0.3 (pinned below 6.1 because typescript-eslint 8.74 requires it), ESLint 10, Vitest 5, Prettier 3. pnpm added a `minimumReleaseAgeExclude` block to `pnpm-workspace.yaml` for vitest; leave it.
+- **State of the code:** the backend core exists in `apps/backend` (config, errors, request context, tenant plugin, state machine, audit log, middleware, app, health, OpenAPI, server, tsup build) with 153 tests. Frontend apps are still empty skeletons. `packages/shared-types` now holds the API response envelope types. No business modules (auth, rooms, bookings...) exist yet.
+- **Toolchain facts:** Node 24, pnpm 12.23.0 (installed globally with npm), TypeScript 6.0.3 (pinned below 6.1 because typescript-eslint 8.74 requires it), ESLint 10, Vitest 5, Prettier 3. pnpm added a `minimumReleaseAgeExclude` block to `pnpm-workspace.yaml` for vitest, coverage and mongoose; leave it. pnpm install scripts are denied for `@scarf/scarf`, `esbuild` and `mongodb-memory-server` (`allowBuilds` in `pnpm-workspace.yaml`); that is intentional and everything still works.
+- **Backend test facts:** backend tests need no Docker. A shared in-memory MongoDB replica set starts in `apps/backend/test/global-setup.ts`; the first run downloads a MongoDB binary of about 780 MB into `~/.cache/mongodb-binaries`. Use `useTestDatabase()` from `apps/backend/test/db.ts` in any test that touches the database, and wrap model calls in `runWithTenant(id, ...)` or `runAsPlatform(...)`. Run from `apps/backend`: `pnpm exec vitest run`, or `pnpm test:coverage`.
+- **Rules every new model and service must follow:** apply `tenantPlugin` to the schema; never read `req.body` directly, use `validate()` and `req.validated`; throw `HttpError` helpers; use `transition()` for any status change; call `recordAudit()` for sensitive actions; no `Model.collection` (lint blocks it).
 
 ---
 
@@ -65,20 +67,22 @@ Sub-phases are in dependency order. P1.7, P1.8 and P1.9 may be done in any order
 
 ### P1.2 Backend core (4 days)
 
-- [ ] `environment.ts` with Zod-validated env, fails fast on missing secrets
-- [ ] `database.ts` (Mongoose connection) and `socket.ts` stub
-- [ ] `app.ts` / `server.ts`, `HttpError`, async error handler, validation middleware, pino logging, helmet, CORS allow-list, rate limiting, `GET /health`
-- [ ] Tenant plugin + `AsyncLocalStorage` request context (propertyId injected into every query, throws without context)
-- [ ] State-machine helper (`transition()` with optimistic concurrency and `history[]`)
-- [ ] `audit_logs` model and audit helper
-- [ ] Test harness: in-memory replica set, two-property seed helper, act-as-user request helper
-- [ ] Swagger/OpenAPI at `/docs`
-- [ ] Tests: tenant isolation (find/update/delete/count/aggregate), state machine incl. concurrent transitions, config fail-fast
-- [ ] **Done when:** a dummy tenant-scoped model proves isolation in tests, `/health` and `/docs` respond
+- [x] `environment.ts` with Zod-validated env, fails fast on missing secrets (no fallbacks; error never prints values). Verified by running the built server with no config: exits 1 with a clear list.
+- [x] `database.ts` (Mongoose connection, credentials never in errors). `socket.ts` is deliberately **not** created here: the Socket.IO gateway is built in P1.4 and a stub would be fake code.
+- [x] `app.ts` / `server.ts`, `HttpError`, async error handler, validation middleware, pino logging with redaction, helmet, CORS allow-list, rate limiting (health and docs exempt), request ids, `GET /health`. Graceful shutdown in `server.ts`.
+- [x] Tenant plugin + `AsyncLocalStorage` request context (`propertyId` injected into every query, throws without context). Review found and fixed two real holes (replace and upsert could orphan or move a document); both tested.
+- [x] State-machine helper (`transition()` with optimistic concurrency, `history[]`, transaction support)
+- [x] `audit_logs` model (append-only) and `recordAudit` helper
+- [x] Test harness: one shared in-memory replica set, one throwaway database per test file, `twoTenants()` ids. **Moved to P1.3:** the HTTP act-as-user helper (it needs login tokens) and a two-property seed with real `Property` documents (the model arrives in P1.5).
+- [x] Swagger/OpenAPI at `/docs` and `/openapi.json`, generated from Zod (off by default in production)
+- [x] Tests: tenant isolation (find/update/delete/count/aggregate/replace/upsert/bulk), state machine incl. 15 racing rounds, config fail-fast, errors, validation, rate limit, CORS, docs, audit. 153 backend tests, 95%+ line coverage.
+- [x] **Done when:** a dummy tenant-scoped model proves isolation in tests (yes), `/health` and `/docs` respond (yes, also checked against the real built server and the Docker MongoDB)
 
 ### P1.3 Authentication and staff access (4 days)
 
 - [ ] Staff login (bcrypt), short-lived access token, hashed refresh token in `refresh_tokens` with TTL, rotation, logout/revoke
+- [ ] HTTP test helper that acts as a given user (moved from P1.2) and a two-property seed with real `Property` documents (the `properties` model is created here or in P1.5, whichever comes first)
+- [ ] Every new Mongoose model that belongs to a property applies `tenantPlugin` (and a test lists all registered models to prove it, with an allow-list for `properties`, `users`, `refresh_tokens`)
 - [ ] Login rate limiting and lockout
 - [ ] RBAC with roles: property_admin, manager, front_desk, kitchen, housekeeping, maintenance, spa_recreation (+ platform_admin)
 - [ ] Role and propertyId only from token/DB, never from request body
@@ -243,8 +247,9 @@ Sub-phases are in dependency order. P1.7, P1.8 and P1.9 may be done in any order
 
 ## Session log (append only, newest at the bottom; one line per meaningful step)
 
-| Date       | What happened                                                                                                                                                                                                                                                                                                       | Where it stopped                                                                  |
-| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
-| 2026-11-25 | Research, reference-repo review, implementation plan written and revised through several owner decisions. Created this checklist and `CLAUDE.md`.                                                                                                                                                                   | Planning complete. Build not started. Next: P1.1.                                 |
-| 2026-11-25 | Initialised local git (`main`), first commit of the planning files. Owner chose not to create a GitHub remote yet, so nothing is pushed.                                                                                                                                                                            | Local commit only. Next: P1.1 when the owner says go; re-ask about a remote then. |
-| 2026-11-25 | **P1.1 done.** Monorepo skeleton, tooling (TypeScript, ESLint, Prettier, Vitest), Docker one-node replica set, `.env.example`, decisions doc, CI workflow. Tests written first and seen failing before the code. Replica set and transactions verified in the container. Committed locally, not pushed (no remote). | P1.1 complete. Next: P1.2 Backend core.                                           |
+| Date       | What happened                                                                                                                                                                                                                                                                                                                                                                                                                         | Where it stopped                                                                  |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| 2026-11-25 | Research, reference-repo review, implementation plan written and revised through several owner decisions. Created this checklist and `CLAUDE.md`.                                                                                                                                                                                                                                                                                     | Planning complete. Build not started. Next: P1.1.                                 |
+| 2026-11-25 | Initialised local git (`main`), first commit of the planning files. Owner chose not to create a GitHub remote yet, so nothing is pushed.                                                                                                                                                                                                                                                                                              | Local commit only. Next: P1.1 when the owner says go; re-ask about a remote then. |
+| 2026-11-25 | **P1.1 done.** Monorepo skeleton, tooling (TypeScript, ESLint, Prettier, Vitest), Docker one-node replica set, `.env.example`, decisions doc, CI workflow. Tests written first and seen failing before the code. Replica set and transactions verified in the container. Committed locally, not pushed (no remote).                                                                                                                   | P1.1 complete. Next: P1.2 Backend core.                                           |
+| 2026-11-25 | **P1.2 done.** Backend core built test-first: config, errors, request context, tenant plugin, state machine, audit log, middleware, app, health, OpenAPI, server, tsup build. Self-review found and fixed two tenant-isolation holes (replace, upsert) plus a lazy-query context bug. 153 backend tests pass, 95% coverage, built server verified against Docker MongoDB. Committed locally, **not pushed** (owner said do not push). | P1.2 complete. Next: P1.3 Authentication and staff access.                        |

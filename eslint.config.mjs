@@ -24,6 +24,22 @@ export default tseslint.config(
     },
   },
   {
+    // Raw driver access skips the tenant plugin, so a query through it is not limited to one
+    // property. Go through the mongoose models instead.
+    files: ['apps/backend/src/**/*.ts'],
+    ignores: ['**/*.test.ts'],
+    rules: {
+      'no-restricted-properties': [
+        'error',
+        {
+          property: 'collection',
+          message:
+            'Raw collection access bypasses tenant scoping. Use the mongoose model (see shared/tenant-plugin.ts).',
+        },
+      ],
+    },
+  },
+  {
     // Plain Node config files may use the console and are not part of any TS project.
     files: ['**/*.mjs', '**/*.cjs'],
     languageOptions: { sourceType: 'module' },
