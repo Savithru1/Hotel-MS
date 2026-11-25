@@ -21,7 +21,7 @@ This is a private hotel management system (hospitality platform) for a friend's 
 
 ## 3. Save and push the checklist
 
-After updating `PROGRESS.md` (or any project file), commit it with a conventional commit message (`docs:`, `feat:`, `fix:`, `test:`, `chore:` ...) and push to the `origin` remote. If no remote is configured yet, or a push fails, do not hide it: write it in the RESUME POINT block and tell the owner. Never commit secrets, `.env` files or `.claude/settings.local.json`.
+After updating `PROGRESS.md` (or any project file), commit it with a conventional commit message (`docs:`, `feat:`, `fix:`, `test:`, `chore:` ...) and push to the `origin` remote. **Current status: the local git repo exists but no remote is configured** (the owner said "not yet" to creating a GitHub repo). Until one exists, commit locally and note "not pushed" in the session log; never create or push to a remote without the owner's explicit yes. If a push fails later, do not hide it: write it in the RESUME POINT block and tell the owner. Never commit secrets, `.env` files or `.claude/settings.local.json`.
 
 ## 4. Work order
 

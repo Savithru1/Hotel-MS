@@ -15,7 +15,8 @@ Legend: `[x]` done and verified, `[ ]` not done. A task being worked on right no
 - **Currently in progress:** nothing. Waiting for the owner to say "start P1.1".
 - **Next action:** begin **P1.1 Project setup** (first unchecked item in the Phase 1 list below).
 - **Blockers / open questions for the owner:** none for P1.1 or P1.2. Open items are in section "Open items" at the bottom.
-- **State of the code:** no application code exists yet. Only `IMPLEMENTATION_PLAN.md`, `PROGRESS.md` and `CLAUDE.md`.
+- **Git / push status:** local git repo on branch `main` is initialised and committed. **No remote is configured yet**: the owner chose "not yet" on 2026-11-25 when asked about creating a private GitHub repo. Until a remote exists, commit locally after each update and mention in the session log that nothing was pushed. Ask the owner again about a remote at the start of P1.1.
+- **State of the code:** no application code exists yet. Only `IMPLEMENTATION_PLAN.md`, `PROGRESS.md`, `CLAUDE.md` and `.gitignore`.
 
 ---
 
@@ -230,3 +231,4 @@ Sub-phases are in dependency order. P1.7, P1.8 and P1.9 may be done in any order
 | Date | What happened | Where it stopped |
 |---|---|---|
 | 2026-11-25 | Research, reference-repo review, implementation plan written and revised through several owner decisions. Created this checklist and `CLAUDE.md`. | Planning complete. Build not started. Next: P1.1. |
+| 2026-11-25 | Initialised local git (`main`), first commit of the planning files. Owner chose not to create a GitHub remote yet, so nothing is pushed. | Local commit only. Next: P1.1 when the owner says go; re-ask about a remote then. |
