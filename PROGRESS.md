@@ -11,12 +11,13 @@ Legend: `[x]` done and verified, `[ ]` not done. A task being worked on right no
 ## RESUME POINT (update this block every time)
 
 - **Last updated:** 2026-11-25
-- **Current phase / sub-phase:** Planning finished. Build has **not started**.
-- **Currently in progress:** nothing. Waiting for the owner to say "start P1.1".
-- **Next action:** begin **P1.1 Project setup** (first unchecked item in the Phase 1 list below).
+- **Current phase / sub-phase:** Phase 1, **P1.1 Project setup** (started 2026-11-25 on the owner's go-ahead).
+- **Currently in progress:** nothing. **P1.1 is finished and verified.**
+- **Next action:** start **P1.2 Backend core** (first unchecked item in the Phase 1 list). Before writing code, run `pnpm install`, and `pnpm db:up` when a database is needed (Docker Desktop must be running; it is installed per-user and was started by hand on 2026-11-25).
 - **Blockers / open questions for the owner:** none for P1.1 or P1.2. Open items are in section "Open items" at the bottom.
 - **Git / push status:** local git repo on branch `main` is initialised and committed. **No remote is configured yet**: the owner chose "not yet" on 2026-11-25 when asked about creating a private GitHub repo. Until a remote exists, commit locally after each update and mention in the session log that nothing was pushed. Ask the owner again about a remote at the start of P1.1.
-- **State of the code:** no application code exists yet. Only `IMPLEMENTATION_PLAN.md`, `PROGRESS.md`, `CLAUDE.md` and `.gitignore`.
+- **State of the code:** the monorepo skeleton and tooling exist (no application logic yet). `apps/*` and `packages/shared-types|validation` contain only an empty `src/index.ts` placeholder, so their `vitest --passWithNoTests` runs pass vacuously until tests are added in P1.2 onwards. `packages/constants` has the staff roles and room statuses with tests. `tests/repo-structure.test.ts` enforces the folder layout, the Phase 1 scope boundary, and MongoDB-only.
+- **Toolchain facts:** Node 24, pnpm 12.23.0 (installed globally with npm), TypeScript 6.0.3 (pinned below 6.1 because typescript-eslint 8.74 requires it), ESLint 10, Vitest 5, Prettier 3. pnpm added a `minimumReleaseAgeExclude` block to `pnpm-workspace.yaml` for vitest; leave it.
 
 ---
 
@@ -52,16 +53,18 @@ Legend: `[x]` done and verified, `[ ]` not done. A task being worked on right no
 Sub-phases are in dependency order. P1.7, P1.8 and P1.9 may be done in any order after P1.6.
 
 ### P1.1 Project setup (1-2 days)
-- [ ] Create monorepo folders exactly as in the spec (no trip-planner, recommendations, local-recommendations folders)
-- [ ] `pnpm-workspace.yaml`, root `package.json`, shared strict `tsconfig`
-- [ ] ESLint, Prettier, Vitest configured
-- [ ] Docker Compose with a one-node MongoDB replica set
-- [ ] `.env.example` and `.gitignore`
-- [ ] `docs/architecture/decisions.md` recording plan section 3 decisions
-- [ ] Minimal CI workflow (install, lint, typecheck, test)
-- [ ] **Done when:** `pnpm install && pnpm lint && pnpm typecheck && pnpm test` pass on the empty skeleton, replica set starts with one command
+
+- [x] Create monorepo folders exactly as in the spec (no trip-planner, recommendations, local-recommendations folders). Enforced by `tests/repo-structure.test.ts`.
+- [x] `pnpm-workspace.yaml`, root `package.json`, shared strict `tsconfig` (`tsconfig.base.json`, TypeScript pinned to 6.0.x)
+- [x] ESLint 10, Prettier, Vitest 5 configured (`pnpm lint`, `pnpm format:check`, `pnpm test` all pass)
+- [x] Docker Compose with a one-node MongoDB replica set. Verified: node is primary, transaction abort rolls back and commit persists. `pnpm db:up` / `db:down` / `db:reset`.
+- [x] `.env.example` and `.gitignore`
+- [x] `docs/architecture/decisions.md` recording plan section 3 decisions
+- [x] Minimal CI workflow (install, lint, typecheck, test) in `.github/workflows/ci.yml`. The same four commands were run locally and pass; the workflow itself has not run on GitHub yet because no remote exists.
+- [x] **Done when:** `pnpm install && pnpm lint && pnpm typecheck && pnpm test` pass on the skeleton (verified 2026-11-25: 49 root tests + 3 constants tests pass), replica set starts with one command (`pnpm db:up`, verified)
 
 ### P1.2 Backend core (4 days)
+
 - [ ] `environment.ts` with Zod-validated env, fails fast on missing secrets
 - [ ] `database.ts` (Mongoose connection) and `socket.ts` stub
 - [ ] `app.ts` / `server.ts`, `HttpError`, async error handler, validation middleware, pino logging, helmet, CORS allow-list, rate limiting, `GET /health`
@@ -74,6 +77,7 @@ Sub-phases are in dependency order. P1.7, P1.8 and P1.9 may be done in any order
 - [ ] **Done when:** a dummy tenant-scoped model proves isolation in tests, `/health` and `/docs` respond
 
 ### P1.3 Authentication and staff access (4 days)
+
 - [ ] Staff login (bcrypt), short-lived access token, hashed refresh token in `refresh_tokens` with TTL, rotation, logout/revoke
 - [ ] Login rate limiting and lockout
 - [ ] RBAC with roles: property_admin, manager, front_desk, kitchen, housekeeping, maintenance, spa_recreation (+ platform_admin)
@@ -85,6 +89,7 @@ Sub-phases are in dependency order. P1.7, P1.8 and P1.9 may be done in any order
 - [ ] **Done when:** seeded user logs in from the staff app, sees only pages for their role, and the staff app reaches the backend
 
 ### P1.4 Real-time foundation (3 days)
+
 - [ ] Typed in-process event bus (services emit, only the gateway forwards)
 - [ ] Socket.IO gateway with JWT handshake auth and server-decided rooms (`p:{propertyId}:dept:{department}`, `:managers`, `:user:{userId}`)
 - [ ] Clients cannot join rooms by name or send mutating events
@@ -94,6 +99,7 @@ Sub-phases are in dependency order. P1.7, P1.8 and P1.9 may be done in any order
 - [ ] **Done when:** a service event reaches exactly the right clients and no others
 
 ### P1.5 Property, rooms and guest records (4 days)
+
 - [ ] Property settings (legal name, address, state, GSTIN, timezone, check-in/out times, departments, effective-dated GST rules)
 - [ ] Room types (capacity, nightly tariff in paise, amenities)
 - [ ] Rooms (number, floor, type, status rules, active flag)
@@ -103,6 +109,7 @@ Sub-phases are in dependency order. P1.7, P1.8 and P1.9 may be done in any order
 - [ ] **Done when:** the real property, room types and rooms can be entered and show correctly
 
 ### P1.6 Bookings and front desk (6 days)
+
 - [ ] Availability search by dates and room type
 - [ ] `room_nights` collection with unique index; create booking in a transaction; booking code generation
 - [ ] Booking lifecycle: Pending, Confirmed, Checked-in, Checked-out, Cancelled, No-show; change dates/room, extend, cancel frees nights
@@ -113,6 +120,7 @@ Sub-phases are in dependency order. P1.7, P1.8 and P1.9 may be done in any order
 - [ ] **Done when:** real bookings can be created, changed, cancelled and checked in, and the room board updates live in a second window
 
 ### P1.7 Housekeeping and maintenance (5 days)
+
 - [ ] Housekeeping requests and cleaning tasks (New, In Progress, Completed)
 - [ ] Maintenance issues (New, Assigned, In Progress, Resolved) with priority and technician assignment
 - [ ] Transactional room-state chain (maintenance takes room out of service; cleaning complete frees room)
@@ -122,6 +130,7 @@ Sub-phases are in dependency order. P1.7, P1.8 and P1.9 may be done in any order
 - [ ] **Done when:** front desk logs a request, it appears live on the right dashboard, completes, and the room status follows
 
 ### P1.8 Food menu and kitchen (5 days)
+
 - [ ] Menu management (categories, items, prices, availability, customisation options, GridFS images)
 - [ ] Food orders entered by staff on behalf of a guest, server-side pricing with snapshots
 - [ ] Kitchen dashboard (Received, Preparing, Ready to Serve, Delivered, Cancelled) with sound and late highlighting
@@ -130,6 +139,7 @@ Sub-phases are in dependency order. P1.7, P1.8 and P1.9 may be done in any order
 - [ ] **Done when:** an order for Room 204 appears on the kitchen screen, is delivered, and front desk sees the status
 
 ### P1.9 Facilities, spa and recreation (5 days)
+
 - [ ] Facilities (hours, slot length, capacity, price)
 - [ ] Available-slots API
 - [ ] Facility bookings with double-booking protection (partial unique index and capacity check in a transaction)
@@ -139,6 +149,7 @@ Sub-phases are in dependency order. P1.7, P1.8 and P1.9 may be done in any order
 - [ ] **Done when:** a facility can be booked, confirmed, started, completed, and a full slot cannot be booked again
 
 ### P1.10 Billing, GST and checkout (8 days)
+
 - [ ] Bill (folio) per booking with line snapshots and unique source reference per line (idempotent posting)
 - [ ] Posting of room nights, delivered food orders, completed facility bookings in transactions, plus reconciliation of earlier events
 - [ ] Manual charges/discounts with reason and manager approval over a limit
@@ -151,6 +162,7 @@ Sub-phases are in dependency order. P1.7, P1.8 and P1.9 may be done in any order
 - [ ] **Done when:** a full stay produces a correct GST invoice the accountant approves, and check-out leaves the room cleaning-ready
 
 ### P1.11 Manager dashboard, notifications and jobs (5 days)
+
 - [ ] Manager dashboard: all department queues, assign/reassign, escalations, pending vs completed
 - [ ] Real statistics from actual data (occupancy, room status, arrivals/departures, revenue by day and department, response times), no placeholder values
 - [ ] Staff account management UI and audit log viewer
@@ -160,6 +172,7 @@ Sub-phases are in dependency order. P1.7, P1.8 and P1.9 may be done in any order
 - [ ] **Done when:** the manager can see and act on everything from one place and every number traces to real data
 
 ### P1.12 Guest in-stay app (7 days)
+
 - [ ] Guest app shell (React + Vite + Tailwind, mobile-first, installable, loading/error/success states)
 - [ ] Two-step guest login API (`/guest/auth/start`, `/guest/auth/verify`) and `GuestVerifier` interface
 - [ ] Phone + Booking ID verifier: checked-in bookings only, E.164 matching, generic errors, rate limits (IP/phone/booking), lockout and front-desk reset, audit-logged failures
@@ -173,6 +186,7 @@ Sub-phases are in dependency order. P1.7, P1.8 and P1.9 may be done in any order
 - [ ] **Done when:** a checked-in guest logs in with phone + Booking ID, orders food from Room 204, watches it move live, requests housekeeping, and it all shows on staff dashboards
 
 ### P1.13 Online payments with Razorpay (4 days)
+
 - [ ] `PaymentProvider` interface, Razorpay adapter, fake provider for tests
 - [ ] Server creates Razorpay order for the server-computed outstanding balance; guest app opens Checkout
 - [ ] Webhook: raw-body signature check, confirm with Razorpay API, amount check, idempotent by payment id
@@ -182,6 +196,7 @@ Sub-phases are in dependency order. P1.7, P1.8 and P1.9 may be done in any order
 - [ ] **Done when:** a guest pays the balance in test mode and bill, ledger and guest screen agree
 
 ### P1.14 Hardening, deployment and acceptance (4 days)
+
 - [ ] Full security review and dependency audit
 - [ ] Cross-tenant contract test over every route and socket event
 - [ ] Indexes verified on realistic data, Atlas backups on, restore test, ID-details retention rule
@@ -216,19 +231,20 @@ Sub-phases are in dependency order. P1.7, P1.8 and P1.9 may be done in any order
 
 ## Decisions log (append only)
 
-| Date | Decision |
-|---|---|
+| Date       | Decision                                                                                                                                                                                                      |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 2026-11-25 | Razorpay first, behind a pluggable `PaymentProvider`; LLM provider pluggable; Google Maps; India, INR, GST; front-desk-only bookings; everything re-implemented from scratch; private project, not published. |
-| 2026-11-25 | Phase 1 = hotel management system only. AI trip planner, recommendations, Maps and the public booking site are deferred. |
-| 2026-11-25 | Guest in-stay app stays in Phase 1 as P1.12. |
-| 2026-11-25 | QR removed from Phase 1. Guest login = linked phone number + Booking ID, checked-in bookings only. |
-| 2026-11-25 | Guest login built OTP-ready (two-step API, `guestLoginMode` setting, `phoneVerifiedAt`, pluggable verifier) so phone + SMS OTP can be added later. |
+| 2026-11-25 | Phase 1 = hotel management system only. AI trip planner, recommendations, Maps and the public booking site are deferred.                                                                                      |
+| 2026-11-25 | Guest in-stay app stays in Phase 1 as P1.12.                                                                                                                                                                  |
+| 2026-11-25 | QR removed from Phase 1. Guest login = linked phone number + Booking ID, checked-in bookings only.                                                                                                            |
+| 2026-11-25 | Guest login built OTP-ready (two-step API, `guestLoginMode` setting, `phoneVerifiedAt`, pluggable verifier) so phone + SMS OTP can be added later.                                                            |
 
 ---
 
 ## Session log (append only, newest at the bottom; one line per meaningful step)
 
-| Date | What happened | Where it stopped |
-|---|---|---|
-| 2026-11-25 | Research, reference-repo review, implementation plan written and revised through several owner decisions. Created this checklist and `CLAUDE.md`. | Planning complete. Build not started. Next: P1.1. |
-| 2026-11-25 | Initialised local git (`main`), first commit of the planning files. Owner chose not to create a GitHub remote yet, so nothing is pushed. | Local commit only. Next: P1.1 when the owner says go; re-ask about a remote then. |
+| Date       | What happened                                                                                                                                                                                                                                                                                                       | Where it stopped                                                                  |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| 2026-11-25 | Research, reference-repo review, implementation plan written and revised through several owner decisions. Created this checklist and `CLAUDE.md`.                                                                                                                                                                   | Planning complete. Build not started. Next: P1.1.                                 |
+| 2026-11-25 | Initialised local git (`main`), first commit of the planning files. Owner chose not to create a GitHub remote yet, so nothing is pushed.                                                                                                                                                                            | Local commit only. Next: P1.1 when the owner says go; re-ask about a remote then. |
+| 2026-11-25 | **P1.1 done.** Monorepo skeleton, tooling (TypeScript, ESLint, Prettier, Vitest), Docker one-node replica set, `.env.example`, decisions doc, CI workflow. Tests written first and seen failing before the code. Replica set and transactions verified in the container. Committed locally, not pushed (no remote). | P1.1 complete. Next: P1.2 Backend core.                                           |

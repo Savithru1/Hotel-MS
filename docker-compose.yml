@@ -1,0 +1,32 @@
+# Local MongoDB for development: a ONE-NODE REPLICA SET, because multi-document
+# transactions (bookings, billing, check-out) need a replica set.
+# MongoDB is the only data store in this project, so there are no other services here.
+#
+#   pnpm db:up      start (waits until the node is the primary)
+#   pnpm db:down    stop (data is kept in the volume)
+#   pnpm db:reset   stop and delete all local data, then start fresh
+services:
+  mongo:
+    image: mongo:8.0
+    container_name: hospitality-mongo
+    command: ['--replSet', 'rs0', '--bind_ip_all', '--port', '27017']
+    ports:
+      # Loopback only: the database is never exposed to the network.
+      - '127.0.0.1:27017:27017'
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      # Initiates the replica set on first run, then reports healthy only once the node is primary.
+      test:
+        - CMD
+        - mongosh
+        - --quiet
+        - --eval
+        - "try { rs.status() } catch (e) { rs.initiate({ _id: 'rs0', members: [{ _id: 0, host: '127.0.0.1:27017' }] }) } quit(db.hello().isWritablePrimary ? 0 : 1)"
+      interval: 3s
+      timeout: 10s
+      retries: 30
+      start_period: 5s
+
+volumes:
+  mongo_data:

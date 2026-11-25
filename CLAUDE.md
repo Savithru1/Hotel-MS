@@ -43,8 +43,8 @@ After updating `PROGRESS.md` (or any project file), commit it with a conventiona
 
 ## 6. Files to know
 
-| File | Purpose |
-|---|---|
-| `PROGRESS.md` | Live checklist, resume point, decisions log, session log. **Read first, update always.** |
-| `IMPLEMENTATION_PLAN.md` | Architecture, data model, detailed sub-phases and acceptance walkthrough. |
-| `docs/architecture/decisions.md` | Decision record (created in P1.1). |
+| File                             | Purpose                                                                                  |
+| -------------------------------- | ---------------------------------------------------------------------------------------- |
+| `PROGRESS.md`                    | Live checklist, resume point, decisions log, session log. **Read first, update always.** |
+| `IMPLEMENTATION_PLAN.md`         | Architecture, data model, detailed sub-phases and acceptance walkthrough.                |
+| `docs/architecture/decisions.md` | Decision record (created in P1.1).                                                       |
