@@ -65,6 +65,8 @@ export type Query = Record<string, string | number | boolean | undefined | null>
 
 export interface RequestOptions {
   body?: unknown;
+  /** A file sent as it is, instead of JSON. Its own type becomes the Content-Type. */
+  rawBody?: Blob;
   query?: Query;
   /** Send no Authorization header (sign-in and refresh). */
   anonymous?: boolean;
@@ -80,6 +82,11 @@ export interface ApiClient {
   get<T>(path: string, query?: Query): Promise<ApiResult<T>>;
   post<T>(path: string, body?: unknown): Promise<ApiResult<T>>;
   patch<T>(path: string, body?: unknown): Promise<ApiResult<T>>;
+  delete<T>(path: string): Promise<ApiResult<T>>;
+  /** Sends a file as the raw request body (PUT), with the file's own content type. */
+  upload<T>(path: string, body: Blob): Promise<ApiResult<T>>;
+  /** Downloads a protected file. The browser cannot send the token on an image tag, so this does. */
+  getBlob(path: string): Promise<Blob>;
   /** Signs in and keeps the new tokens. */
   login(input: { propertySlug: string; email: string; password: string }): Promise<Session>;
   /** Uses the stored refresh token to start a session, or returns null if there is none. */
@@ -131,7 +138,7 @@ export function createApiClient({
   async function send<T>(
     method: string,
     path: string,
-    { body, query, anonymous }: RequestOptions,
+    { body, rawBody, query, anonymous }: RequestOptions,
   ): Promise<{ status: number; result: ApiResult<T> }> {
     let response: Response;
     try {
@@ -139,10 +146,14 @@ export function createApiClient({
         method,
         headers: {
           Accept: 'application/json',
-          ...(body !== undefined ? { 'Content-Type': 'application/json' } : {}),
+          ...(rawBody
+            ? { 'Content-Type': rawBody.type }
+            : body !== undefined
+              ? { 'Content-Type': 'application/json' }
+              : {}),
           ...(!anonymous && accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
         },
-        ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
+        ...(rawBody ? { body: rawBody } : body !== undefined ? { body: JSON.stringify(body) } : {}),
       });
     } catch {
       throw new ApiError(0, 'network_error', UNREACHABLE);
@@ -231,11 +242,56 @@ export function createApiClient({
     }
   }
 
+  async function getBlob(path: string): Promise<Blob> {
+    const attempt = async (): Promise<Blob> => {
+      let response: Response;
+      try {
+        response = await doFetch(buildUrl(baseUrl, path), {
+          method: 'GET',
+          // The same URL serves a new image after a replace, so never answer from the HTTP cache.
+          cache: 'no-cache',
+          headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
+        });
+      } catch {
+        throw new ApiError(0, 'network_error', UNREACHABLE);
+      }
+      if (!response.ok) {
+        let failure: ApiFailure | undefined;
+        try {
+          failure = (await response.json()) as ApiFailure;
+        } catch {
+          failure = undefined;
+        }
+        throw new ApiError(
+          response.status,
+          failure?.error?.code ?? 'unexpected_response',
+          failure?.error?.message ?? 'The server sent an unexpected response.',
+          failure?.error?.details,
+          failure?.requestId,
+        );
+      }
+      return response.blob();
+    };
+
+    try {
+      return await attempt();
+    } catch (error) {
+      const expired =
+        error instanceof ApiError && error.status === 401 && error.code === 'invalid_token';
+      if (!expired) throw error;
+      await refresh();
+      return attempt();
+    }
+  }
+
   return {
     request,
     get: (path, query) => request('GET', path, query ? { query } : {}),
     post: (path, body) => request('POST', path, body === undefined ? {} : { body }),
     patch: (path, body) => request('PATCH', path, body === undefined ? {} : { body }),
+    delete: (path) => request('DELETE', path),
+    upload: (path, body) => request('PUT', path, { rawBody: body }),
+    getBlob,
 
     async login(input) {
       const { result } = await send<Session>('POST', '/auth/login', {

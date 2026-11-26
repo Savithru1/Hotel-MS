@@ -71,6 +71,19 @@ export function createFakeApi(initial: StaffDto | null = null): FakeApi {
     patch(path, body) {
       return api.request('PATCH', path, { body });
     },
+    delete(path) {
+      return api.request('DELETE', path, {});
+    },
+    upload(path, body) {
+      return api.request('PUT', path, { body });
+    },
+    async getBlob(path) {
+      calls.push({ method: 'GET', path });
+      const handler = handlers.get(`GET ${path}`);
+      if (!handler) throw new ApiError(404, 'no_image', `No fake for GET ${path}`);
+      await handler(undefined, undefined);
+      return new Blob([new Uint8Array([1, 2, 3])], { type: 'image/png' });
+    },
     login: vi.fn(async ({ email, password }) => {
       if (password !== 'right-password') {
         throw new ApiError(401, 'invalid_credentials', 'Those details are not correct.');

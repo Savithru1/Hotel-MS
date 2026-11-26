@@ -33,7 +33,7 @@ export function useList<T>(
   return Object.assign(result, { items: result.data?.data ?? [], meta: result.data?.meta });
 }
 
-type Method = 'post' | 'patch';
+type Method = 'post' | 'patch' | 'delete';
 
 /**
  * A write: sends the body, then refetches every query whose path starts with one of
@@ -49,7 +49,11 @@ export function useSend<TResult, TBody = unknown>(
   return useMutation<TResult, ApiError, TBody>({
     mutationFn: async (body) => {
       const target = typeof path === 'function' ? path(body) : path;
-      return (await api[method]<TResult>(target, body)).data;
+      const result =
+        method === 'delete'
+          ? await api.delete<TResult>(target)
+          : await api[method]<TResult>(target, body);
+      return result.data;
     },
     onSuccess: async () => {
       await Promise.all(
