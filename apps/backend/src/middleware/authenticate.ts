@@ -36,7 +36,7 @@ export function authenticate(
       throw unauthorized('Your session has expired, please sign in again', 'invalid_token');
     }
 
-    const staff = await auth.loadActiveStaff(claims.staffId, claims.propertyId);
+    const staff = await auth.loadActiveStaff(claims.staffId, claims.propertyId, claims.issuedAt);
     if (!staff) {
       throw unauthorized('Your session has expired, please sign in again', 'invalid_token');
     }

@@ -54,7 +54,7 @@ export function authRouter(
     legacyHeaders: false,
     keyGenerator: (req) => {
       const body = (req.body ?? {}) as { propertySlug?: unknown; email?: unknown };
-      const account = `${String(body.propertySlug ?? '')}|${String(body.email ?? '')}`
+      const account = `${String(body.propertySlug ?? '').trim()}|${String(body.email ?? '').trim()}`
         .toLowerCase()
         .slice(0, 200);
       return `${ipKeyGenerator(req.ip ?? '')}|${account}`;

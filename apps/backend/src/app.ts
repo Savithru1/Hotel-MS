@@ -12,6 +12,7 @@ import { createRateLimiter, type RateLimitOptions } from './middleware/rate-limi
 import { requestContext } from './middleware/request-context';
 import type { LoginLimits } from './modules/auth/auth.routes';
 import { buildApiRouter } from './routes';
+import { buildServices, type Services } from './services';
 import { buildOpenApiDocument } from './shared/openapi';
 
 export interface AppOptions {
@@ -22,6 +23,8 @@ export interface AppOptions {
   rateLimit?: RateLimitOptions;
   /** Overridable so sign-in limits can be tested without hundreds of requests. */
   loginLimits?: LoginLimits;
+  /** Shared with the realtime gateway. Built from `env` when not given. */
+  services?: Services;
 }
 
 const DEFAULT_RATE_LIMIT: RateLimitOptions = { windowMs: 60_000, limit: 300 };
@@ -38,10 +41,14 @@ export function createApp({
   checkDatabase,
   rateLimit,
   loginLimits,
+  services,
 }: AppOptions): Express {
   const app = express();
   // Building the routes registers them in the API docs, so this must happen before the docs.
-  const api = buildApiRouter({ env, ...(loginLimits ? { loginLimits } : {}) });
+  const api = buildApiRouter({
+    services: services ?? buildServices(env),
+    ...(loginLimits ? { loginLimits } : {}),
+  });
 
   app.disable('x-powered-by');
   app.set('trust proxy', env.TRUST_PROXY);

@@ -6,6 +6,8 @@ export interface RefreshTokenDocument {
   tokenHash: string;
   /** All tokens that descend from one sign-in share a family, so they can be revoked together. */
   family: string;
+  /** When the original sign-in happened. Rotation never moves it, so a session cannot slide forever. */
+  familyCreatedAt: Date;
   principal: { kind: 'staff'; id: Types.ObjectId };
   propertyId: Types.ObjectId;
   usedAt: Date | null;
@@ -22,6 +24,7 @@ const refreshTokenSchema = new Schema<RefreshTokenDocument>(
   {
     tokenHash: { type: String, required: true, unique: true },
     family: { type: String, required: true, index: true },
+    familyCreatedAt: { type: Date, required: true },
     principal: {
       kind: { type: String, enum: ['staff'], required: true },
       id: { type: Schema.Types.ObjectId, required: true },

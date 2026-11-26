@@ -35,6 +35,8 @@ export interface AuthService {
   loadActiveStaff(
     staffId: Types.ObjectId,
     propertyId: Types.ObjectId,
+    /** When the access token was signed. Tokens older than the last password change are refused. */
+    issuedAt?: Date,
   ): Promise<AuthenticatedStaff | null>;
   /** The current staff member and property, for `GET /auth/me`. */
   describe(staff: AuthenticatedStaff): Promise<Omit<Session, 'tokens'>>;
@@ -81,13 +83,21 @@ export function createAuthService(env: Env, tokens: TokenService): AuthService {
   const loadStaff = (staffId: Types.ObjectId, propertyId: Types.ObjectId) =>
     runWithTenant(propertyId, () => Staff.findOne({ _id: staffId }).lean());
 
+  const isPropertyActive = async (propertyId: Types.ObjectId): Promise<boolean> =>
+    (await runAsPlatform(() => Property.exists({ _id: propertyId, active: true }))) !== null;
+
   async function recordFailure(staff: StaffRecord, reason: string): Promise<void> {
     await runWithTenant(staff.propertyId, async () => {
-      const updated = await Staff.findOneAndUpdate(
-        { _id: staff._id },
-        { $inc: { failedLoginCount: 1 } },
-        { returnDocument: 'after' },
-      ).lean();
+      // An account that is already locked is not counted again, so an attacker cannot keep
+      // extending someone else's lock by hammering it.
+      const updated =
+        reason === 'locked'
+          ? null
+          : await Staff.findOneAndUpdate(
+              { _id: staff._id },
+              { $inc: { failedLoginCount: 1 } },
+              { returnDocument: 'after' },
+            ).lean();
       const locked = (updated?.failedLoginCount ?? 0) >= MAX_FAILED_LOGINS;
       if (locked) {
         await Staff.updateOne(
@@ -150,7 +160,7 @@ export function createAuthService(env: Env, tokens: TokenService): AuthService {
     async refresh(refreshToken) {
       const rotated = await tokens.rotateRefreshToken(refreshToken);
       const staff = await loadStaff(rotated.staffId, rotated.propertyId);
-      if (!staff?.active) {
+      if (!staff?.active || !(await isPropertyActive(rotated.propertyId))) {
         await tokens.revokeAllFor(rotated.staffId);
         throw unauthorized(
           'Your session has expired, please sign in again',
@@ -169,6 +179,9 @@ export function createAuthService(env: Env, tokens: TokenService): AuthService {
         Staff.findOne({ _id: staff.id }).select('+passwordHash').lean(),
       );
       if (!record || !(await verifyPassword(current, record.passwordHash))) {
+        // Counts towards the same lockout as sign-in, so a stolen access token cannot be used
+        // to guess the current password.
+        if (record) await recordFailure(record, 'bad_current_password');
         throw new HttpError(400, 'wrong_password', 'The current password is not correct');
       }
       if (await verifyPassword(next, record.passwordHash)) {
@@ -211,9 +224,18 @@ export function createAuthService(env: Env, tokens: TokenService): AuthService {
       return buildSession(updated, staff.propertyId, refresh);
     },
 
-    async loadActiveStaff(staffId, propertyId) {
+    async loadActiveStaff(staffId, propertyId, issuedAt) {
       const staff = await loadStaff(staffId, propertyId);
       if (!staff?.active) return null;
+      if (!(await isPropertyActive(propertyId))) return null;
+      // Token timestamps are whole seconds, so compare at that precision.
+      if (
+        issuedAt &&
+        staff.passwordChangedAt &&
+        Math.floor(staff.passwordChangedAt.getTime() / 1000) > Math.floor(issuedAt.getTime() / 1000)
+      ) {
+        return null;
+      }
       return toAuthenticated(staff);
     },
 

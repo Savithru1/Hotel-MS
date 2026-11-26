@@ -48,6 +48,8 @@ const schema = z
     BCRYPT_COST: z.coerce.number().int().min(4).max(15).default(12),
     ACCESS_TOKEN_TTL_SECONDS: z.coerce.number().int().min(60).max(3600).default(900),
     REFRESH_TOKEN_TTL_DAYS: z.coerce.number().int().min(1).max(90).default(14),
+    /** `mongo` is only needed once a second backend instance runs. */
+    SOCKET_ADAPTER: z.enum(['memory', 'mongo']).default('memory'),
     ENABLE_DOCS: z.enum(['true', 'false']).optional(),
   })
   .superRefine((env, context) => {

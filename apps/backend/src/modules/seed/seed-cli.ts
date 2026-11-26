@@ -12,6 +12,11 @@ async function main(): Promise<void> {
     throw new Error('Refusing to seed development data when NODE_ENV is "production".');
   }
 
+  // The seed password is public, so only ever seed a database on this machine.
+  if (!/^mongodb:\/\/(127\.0\.0\.1|localhost|\[::1\])(:\d+)?[/?]/.test(env.MONGODB_URI)) {
+    throw new Error('Refusing to seed a database that is not on this machine (localhost).');
+  }
+
   await connectDatabase(env.MONGODB_URI);
   try {
     const properties = await seedDevelopmentData({ bcryptCost: env.BCRYPT_COST });

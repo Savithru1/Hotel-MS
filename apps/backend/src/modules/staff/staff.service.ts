@@ -148,8 +148,10 @@ export function createStaffService(env: Env, tokens: TokenService): StaffService
         );
       }
 
+      // The role is part of the filter: if the account was promoted while we were deciding, the
+      // rank check above no longer applies and the update must not go through.
       const updated = await Staff.findOneAndUpdate(
-        { _id: id },
+        { _id: id, role: target.role },
         { $set: set },
         { returnDocument: 'after', runValidators: true },
       ).lean();
@@ -177,7 +179,7 @@ export function createStaffService(env: Env, tokens: TokenService): StaffService
 
       const temporaryPassword = generateTemporaryPassword();
       const updated = await Staff.findOneAndUpdate(
-        { _id: id },
+        { _id: id, role: target.role },
         {
           $set: {
             passwordHash: await hashPassword(temporaryPassword, env.BCRYPT_COST),

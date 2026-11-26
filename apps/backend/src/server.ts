@@ -1,6 +1,10 @@
+import { createServer } from 'node:http';
 import { createApp } from './app';
 import { connectDatabase, disconnectDatabase } from './config/database';
 import { EnvValidationError, loadEnv } from './config/environment';
+import { attachGateway } from './realtime/gateway';
+import { eventBus } from './shared/events/event-bus';
+import { buildServices } from './services';
 import { createLogger } from './utils/logger';
 
 const SHUTDOWN_GRACE_MS = 10_000;
@@ -12,8 +16,18 @@ async function main(): Promise<void> {
   await connectDatabase(env.MONGODB_URI);
   logger.info('Connected to MongoDB');
 
-  const app = createApp({ env, logger });
-  const server = app.listen(env.PORT, () => {
+  const services = buildServices(env);
+  const app = createApp({ env, logger, services });
+  const server = createServer(app);
+  const gateway = await attachGateway({
+    httpServer: server,
+    env,
+    tokens: services.tokens,
+    auth: services.auth,
+    bus: eventBus,
+    logger,
+  });
+  server.listen(env.PORT, () => {
     logger.info({ port: env.PORT, env: env.NODE_ENV }, 'API listening');
   });
 
@@ -29,7 +43,7 @@ async function main(): Promise<void> {
     }, SHUTDOWN_GRACE_MS);
     forceExit.unref();
 
-    server.close(() => {
+    void gateway.close().then(() => {
       disconnectDatabase()
         .then(() => process.exit(0))
         .catch((error: unknown) => {
