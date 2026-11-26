@@ -1,8 +1,10 @@
 import { Router } from 'express';
 import { authRouter, type LoginLimits } from './modules/auth/auth.routes';
 import { bookingRouter } from './modules/bookings/booking.routes';
+import { foodOrderRouter } from './modules/food-orders/food-order.routes';
 import { housekeepingRouter } from './modules/housekeeping/housekeeping.routes';
 import { maintenanceRouter } from './modules/maintenance/maintenance.routes';
+import { menuRouter } from './modules/menu/menu.routes';
 import { propertyRouter } from './modules/properties/property.routes';
 import { roomRouters } from './modules/rooms/room.routes';
 import { staffRouter } from './modules/staff/staff.routes';
@@ -16,8 +18,19 @@ export interface ApiOptions {
 
 /** All versioned API routes. Mounted at `/api/v1` by `createApp`. */
 export function buildApiRouter({ services, loginLimits }: ApiOptions): Router {
-  const { tokens, auth, staff, properties, rooms, guests, bookings, housekeeping, maintenance } =
-    services;
+  const {
+    tokens,
+    auth,
+    staff,
+    properties,
+    rooms,
+    guests,
+    bookings,
+    housekeeping,
+    maintenance,
+    menu,
+    foodOrders,
+  } = services;
   const router = Router();
   router.use('/auth', authRouter(tokens, auth, loginLimits));
   router.use('/staff', staffRouter(tokens, auth, staff));
@@ -29,5 +42,7 @@ export function buildApiRouter({ services, loginLimits }: ApiOptions): Router {
   router.use('/bookings', bookingRouter(tokens, auth, bookings));
   router.use('/housekeeping', housekeepingRouter(tokens, auth, housekeeping));
   router.use('/maintenance', maintenanceRouter(tokens, auth, maintenance));
+  router.use('/menu', menuRouter(tokens, auth, menu));
+  router.use('/food-orders', foodOrderRouter(tokens, auth, foodOrders));
   return router;
 }

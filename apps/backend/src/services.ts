@@ -3,6 +3,11 @@ import { createAuthService, type AuthService } from './modules/auth/auth.service
 import { createTokenService, type TokenService } from './modules/auth/token.service';
 import { createBookingService, type BookingService } from './modules/bookings/booking.service';
 import {
+  createFoodOrderService,
+  type FoodOrderService,
+} from './modules/food-orders/food-order.service';
+import { createMenuService, type MenuService } from './modules/menu/menu.service';
+import {
   createHousekeepingService,
   type HousekeepingService,
 } from './modules/housekeeping/housekeeping.service';
@@ -26,6 +31,8 @@ export interface Services {
   bookings: BookingService;
   housekeeping: HousekeepingService;
   maintenance: MaintenanceService;
+  menu: MenuService;
+  foodOrders: FoodOrderService;
 }
 
 export function buildServices(env: Env): Services {
@@ -42,5 +49,7 @@ export function buildServices(env: Env): Services {
     bookings: createBookingService(properties, rooms),
     housekeeping: createHousekeepingService(rooms),
     maintenance: createMaintenanceService(rooms),
+    menu: createMenuService(),
+    foodOrders: createFoodOrderService(),
   };
 }

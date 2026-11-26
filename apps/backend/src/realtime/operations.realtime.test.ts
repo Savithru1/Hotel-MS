@@ -5,7 +5,7 @@ import { pino } from 'pino';
 import { io as connect, type Socket } from 'socket.io-client';
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
 import { useTestDatabase } from '../../test/db';
-import { lookup, today, day, type Lookup } from '../../test/fixtures';
+import { checkInGuest, lookup, today, day, type Lookup } from '../../test/fixtures';
 import { buildTestApp, type Client } from '../../test/http';
 import { seedDevelopmentData, type SeededProperty } from '../modules/seed/seed';
 import { eventBus } from '../shared/events/event-bus';
@@ -223,5 +223,95 @@ describe('live updates reach the right people', () => {
     await settle();
     const wire = JSON.stringify(live.frontDesk.events);
     expect(wire).not.toMatch(/Private Person|7000000666|allergic/);
+  });
+});
+
+describe('food orders reach the kitchen, front desk and managers only', () => {
+  async function menuItem(): Promise<string> {
+    const manager = await as(a, 'manager');
+    const res = await manager.post('/api/v1/menu/items', {
+      name: `Live Chai ${Date.now()}`,
+      category: 'Drinks',
+      pricePaise: 8_000,
+    });
+    expect(res.status).toBe(201);
+    return res.body.data.id as string;
+  }
+
+  it('a new order is heard by the kitchen, front desk and managers, and nobody else', async () => {
+    const desk = await as(a, 'front_desk');
+    await checkInGuest(desk, ids, '201', 'Standard', '+917000000201');
+    const itemId = await menuItem();
+    const live = await everyone();
+
+    const res = await desk.post('/api/v1/food-orders', {
+      roomId: ids.rooms['201'],
+      items: [{ menuItemId: itemId, quantity: 1 }],
+      notes: 'allergic to peanuts',
+    });
+    expect(res.status).toBe(201);
+    await settle();
+
+    for (const heard of [live.kitchen, live.frontDesk, live.manager]) {
+      expect(types(heard)).toEqual(['food_order.changed']);
+      expect(heard.events[0]?.data).toMatchObject({
+        orderId: res.body.data.id,
+        roomNumber: '201',
+        status: 'received',
+        change: 'created',
+      });
+    }
+    for (const silent of [
+      live.housekeeping,
+      live.maintenance,
+      live.spa,
+      live.otherManager,
+      live.otherHousekeeping,
+    ]) {
+      expect(silent.events).toHaveLength(0);
+    }
+    expect(JSON.stringify(live.kitchen.events)).not.toMatch(/In House Guest|7000000201|peanuts/);
+  });
+
+  it('each kitchen step is heard by the right people, and the billing hook is sent to no screen', async () => {
+    const desk = await as(a, 'front_desk');
+    const kitchen = await as(a, 'kitchen');
+    const itemId = await menuItem();
+    const placed = await desk.post('/api/v1/food-orders', {
+      roomId: ids.rooms['201'],
+      items: [{ menuItemId: itemId, quantity: 2 }],
+    });
+    const id = placed.body.data.id as string;
+    const live = await everyone();
+
+    for (const step of ['start', 'ready', 'deliver']) {
+      expect((await kitchen.post(`/api/v1/food-orders/${id}/${step}`)).status).toBe(200);
+    }
+    await settle();
+
+    for (const heard of [live.kitchen, live.frontDesk, live.manager]) {
+      expect(types(heard)).toEqual([
+        'food_order.changed',
+        'food_order.changed',
+        'food_order.changed',
+      ]);
+      expect(heard.events.map((e) => (e.data as { status: string }).status)).toEqual([
+        'preparing',
+        'ready',
+        'delivered',
+      ]);
+    }
+    for (const silent of [
+      live.housekeeping,
+      live.maintenance,
+      live.spa,
+      live.otherManager,
+      live.otherHousekeeping,
+    ]) {
+      expect(silent.events).toHaveLength(0);
+    }
+    for (const listener of Object.values(live)) {
+      expect(types(listener)).not.toContain('order.delivered');
+    }
   });
 });

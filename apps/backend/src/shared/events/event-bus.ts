@@ -26,6 +26,20 @@ export interface AppEvents {
     escalated: boolean;
     priority: string;
   };
+  /** A food order was placed, started, made ready, delivered or cancelled. */
+  'food_order.changed': {
+    orderId: string;
+    orderCode: string;
+    roomId: string;
+    roomNumber: string;
+    status: string;
+    change: string;
+  };
+  /**
+   * A food order was delivered. This is the hook billing posts from (P1.10). It is sent on the
+   * in-process bus only and has no screen audience: no client ever receives it.
+   */
+  'order.delivered': { orderId: string; bookingId: string; roomId: string; subtotalPaise: number };
   /** A booking was created, changed or moved to a new status. The front desk refetches it. */
   'booking.changed': {
     bookingId: string;
