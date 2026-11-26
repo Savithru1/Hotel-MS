@@ -24,9 +24,22 @@ describe('menu by role', () => {
     expect(navFor('maintenance').map((item) => item.path)).toEqual(['/maintenance']);
   });
 
-  it('shows kitchen and spa staff no pages yet (their dashboards are later sub-phases)', () => {
-    expect(navFor('kitchen')).toEqual([]);
+  it('shows the kitchen its own screen, and spa staff nothing yet (their dashboard is later)', () => {
+    expect(navFor('kitchen').map((item) => item.path)).toEqual(['/kitchen']);
     expect(navFor('spa_recreation')).toEqual([]);
+  });
+
+  it('lets the front desk open the kitchen screen, but only management edit the menu', () => {
+    expect(canOpen('front_desk', '/kitchen')).toBe(true);
+    expect(canOpen('front_desk', '/menu')).toBe(false);
+    expect(canOpen('kitchen', '/menu')).toBe(false);
+    for (const role of ['manager', 'property_admin', 'platform_admin'] as const) {
+      expect(canOpen(role, '/menu')).toBe(true);
+      expect(canOpen(role, '/kitchen')).toBe(true);
+    }
+    for (const role of ['housekeeping', 'maintenance', 'spa_recreation'] as const) {
+      expect(canOpen(role, '/kitchen')).toBe(false);
+    }
   });
 
   it('shows managers and admins everything', () => {
@@ -46,6 +59,10 @@ describe('menu by role', () => {
 });
 
 describe('landing page and role helpers', () => {
+  it('lands the kitchen on the kitchen screen', () => {
+    expect(homePathFor('kitchen')).toBe('/kitchen');
+  });
+
   it('sends each role to a page it may open', () => {
     for (const role of STAFF_ROLES) {
       const home = homePathFor(role);

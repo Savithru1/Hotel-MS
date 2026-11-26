@@ -14,9 +14,11 @@ import { FrontDeskPage } from './pages/front-desk/FrontDeskPage';
 import { GuestsPage } from './pages/front-desk/GuestsPage';
 import { NewBookingPage } from './pages/front-desk/NewBookingPage';
 import { HousekeepingPage } from './pages/housekeeping/HousekeepingPage';
+import { KitchenPage } from './pages/kitchen/KitchenPage';
 import { ChangePasswordPage } from './pages/login/ChangePasswordPage';
 import { LoginPage } from './pages/login/LoginPage';
 import { MaintenancePage } from './pages/maintenance/MaintenancePage';
+import { MenuPage } from './pages/manager/MenuPage';
 import { PropertyPage } from './pages/manager/PropertyPage';
 import { RoomTypesPage } from './pages/manager/RoomTypesPage';
 import { RoomsPage } from './pages/manager/RoomsPage';
@@ -92,6 +94,8 @@ export function AppRoutes({ createSocket }: { createSocket?: SocketFactory }) {
           {page('/guests', <GuestsPage />)}
           {page('/housekeeping', <HousekeepingPage />)}
           {page('/maintenance', <MaintenancePage />)}
+          {page('/kitchen', <KitchenPage />)}
+          {page('/menu', <MenuPage />)}
           {page('/rooms', <RoomsPage />)}
           {page('/room-types', <RoomTypesPage />)}
           {page('/staff', <StaffPage />)}

@@ -28,9 +28,12 @@ function mount(api: FakeApi, path = '/') {
     '/guests',
     '/staff',
     '/room-types',
+    '/food-orders',
+    '/menu/items',
   ]) {
     api.on(`GET ${route}`, emptyList);
   }
+  api.on('GET /food-orders/summary', { byStatus: {}, late: 0 });
   api.on('GET /bookings/overview', {
     date: '2026-11-26',
     arrivals: [],
@@ -164,10 +167,28 @@ describe('what each role sees', () => {
     expect(await screen.findByRole('heading', { name: 'Staff' })).toBeInTheDocument();
   });
 
-  it('is honest that kitchen and spa dashboards do not exist yet', async () => {
+  it('lands the kitchen on the kitchen screen', async () => {
     mount(createFakeApi(staffDto('kitchen')));
+    expect(await screen.findByRole('heading', { name: 'Kitchen' })).toBeInTheDocument();
+    expect(menuLinks()).toEqual(['Kitchen']);
+  });
+
+  it('is honest that the spa dashboard does not exist yet', async () => {
+    mount(createFakeApi(staffDto('spa_recreation')));
     expect(await screen.findByText(/has not been built yet/)).toBeInTheDocument();
     expect(menuLinks()).toEqual([]);
+  });
+
+  it('turns the front desk away from the menu editor, but lets a manager in', async () => {
+    mount(createFakeApi(staffDto('front_desk')), '/menu');
+    expect(
+      await screen.findByRole('heading', { name: 'Today at the front desk' }),
+    ).toBeInTheDocument();
+  });
+
+  it('lets a manager open the menu editor', async () => {
+    mount(createFakeApi(staffDto('manager')), '/menu');
+    expect(await screen.findByRole('heading', { name: 'Menu' })).toBeInTheDocument();
   });
 
   it('sends any unknown address to the person’s home page', async () => {

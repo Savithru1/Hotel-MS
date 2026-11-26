@@ -30,8 +30,15 @@ export const NAV_ITEMS: readonly NavItem[] = [
     roles: ['maintenance', 'front_desk', ...MANAGEMENT],
     group: 'Operations',
   },
+  {
+    path: '/kitchen',
+    label: 'Kitchen',
+    roles: ['kitchen', 'front_desk', ...MANAGEMENT],
+    group: 'Operations',
+  },
   { path: '/rooms', label: 'Rooms', roles: FRONT_DESK_TEAM, group: 'Setup' },
   { path: '/room-types', label: 'Room types', roles: MANAGEMENT, group: 'Setup' },
+  { path: '/menu', label: 'Menu', roles: MANAGEMENT, group: 'Setup' },
   { path: '/staff', label: 'Staff', roles: MANAGEMENT, group: 'Setup' },
   { path: '/property', label: 'Property', roles: MANAGEMENT, group: 'Setup' },
 ];
@@ -49,7 +56,8 @@ export function canOpen(role: StaffRole, path: string): boolean {
 export function homePathFor(role: StaffRole): string {
   if (role === 'housekeeping') return '/housekeeping';
   if (role === 'maintenance') return '/maintenance';
-  if (role === 'kitchen' || role === 'spa_recreation') return '/welcome';
+  if (role === 'kitchen') return '/kitchen';
+  if (role === 'spa_recreation') return '/welcome';
   return '/front-desk';
 }
 
