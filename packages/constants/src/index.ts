@@ -107,3 +107,32 @@ export const GUEST_ID_TYPES = [
   'other',
 ] as const;
 export type GuestIdType = (typeof GUEST_ID_TYPES)[number];
+
+export const BOOKING_STATUSES = [
+  'pending',
+  'confirmed',
+  'checked_in',
+  'checked_out',
+  'cancelled',
+  'no_show',
+] as const;
+export type BookingStatus = (typeof BOOKING_STATUSES)[number];
+
+/** Pending -> Confirmed -> Checked-in -> Checked-out, plus Cancelled and No-show. */
+export const BOOKING_TRANSITIONS: Readonly<Record<BookingStatus, readonly BookingStatus[]>> = {
+  pending: ['confirmed', 'cancelled'],
+  confirmed: ['checked_in', 'cancelled', 'no_show'],
+  checked_in: ['checked_out'],
+  checked_out: [],
+  cancelled: [],
+  no_show: [],
+};
+
+/** Statuses in which a booking holds its room for the nights of the stay. */
+export const NIGHT_HOLDING_STATUSES: readonly BookingStatus[] = [
+  'pending',
+  'confirmed',
+  'checked_in',
+];
+
+export const MAX_STAY_NIGHTS = 90;

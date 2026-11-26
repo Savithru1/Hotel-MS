@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import {
   ASSIGNABLE_ROLES,
+  BOOKING_STATUSES,
+  BOOKING_TRANSITIONS,
+  NIGHT_HOLDING_STATUSES,
   MANUAL_ROOM_STATUSES,
   ROOM_STATUS_TRANSITIONS,
   DEPARTMENTS,
@@ -90,5 +93,21 @@ describe('room status transitions', () => {
   it('leaves booking-driven statuses out of the manual list', () => {
     expect(MANUAL_ROOM_STATUSES).not.toContain('occupied' as never);
     expect(MANUAL_ROOM_STATUSES).not.toContain('reserved' as never);
+  });
+});
+
+describe('booking workflow', () => {
+  it('has a row for every status and ends in the three terminal states', () => {
+    for (const status of BOOKING_STATUSES) expect(BOOKING_TRANSITIONS[status]).toBeDefined();
+    const terminal = BOOKING_STATUSES.filter((s) => BOOKING_TRANSITIONS[s].length === 0);
+    expect(terminal.sort()).toEqual(['cancelled', 'checked_out', 'no_show']);
+  });
+
+  it('only releases the room nights of finished bookings', () => {
+    expect(NIGHT_HOLDING_STATUSES).toEqual(['pending', 'confirmed', 'checked_in']);
+  });
+
+  it('cannot go straight from pending to checked in', () => {
+    expect(BOOKING_TRANSITIONS.pending).not.toContain('checked_in');
   });
 });

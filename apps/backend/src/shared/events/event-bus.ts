@@ -7,6 +7,14 @@ import type { Types } from 'mongoose';
  * stays in one place. Add an entry here when a module starts emitting a new event.
  */
 export interface AppEvents {
+  /** A booking was created, changed or moved to a new status. The front desk refetches it. */
+  'booking.changed': {
+    bookingId: string;
+    bookingCode: string;
+    status: string;
+    roomId: string;
+    change: string;
+  };
   /** A room moved to a new status. Front desk, housekeeping and managers refetch the room board. */
   'room.status_changed': { roomId: string; roomNumber: string; status: string; previous: string };
   /** A plain notice for connected staff. Used by tests and operational messages. */
