@@ -2,6 +2,13 @@ import type { Env } from './config/environment';
 import { createAuthService, type AuthService } from './modules/auth/auth.service';
 import { createTokenService, type TokenService } from './modules/auth/token.service';
 import { createBookingService, type BookingService } from './modules/bookings/booking.service';
+import { createBillingService, type BillingService } from './modules/billing/billing.service';
+import { createCheckOutService, type CheckOutService } from './modules/billing/checkout.service';
+import {
+  createFacilityBookingService,
+  type FacilityBookingService,
+} from './modules/facilities/facility-booking.service';
+import { createFacilityService, type FacilityService } from './modules/facilities/facility.service';
 import {
   createFoodOrderService,
   type FoodOrderService,
@@ -33,12 +40,17 @@ export interface Services {
   maintenance: MaintenanceService;
   menu: MenuService;
   foodOrders: FoodOrderService;
+  facilities: FacilityService;
+  facilityBookings: FacilityBookingService;
+  billing: BillingService;
+  checkOut: CheckOutService;
 }
 
 export function buildServices(env: Env): Services {
   const tokens = createTokenService(env);
   const properties = createPropertyService();
   const rooms = createRoomService();
+  const billing = createBillingService(properties);
   return {
     tokens,
     auth: createAuthService(env, tokens),
@@ -51,5 +63,9 @@ export function buildServices(env: Env): Services {
     maintenance: createMaintenanceService(rooms),
     menu: createMenuService(),
     foodOrders: createFoodOrderService(),
+    facilities: createFacilityService(properties),
+    facilityBookings: createFacilityBookingService(properties),
+    billing,
+    checkOut: createCheckOutService(properties, billing, rooms),
   };
 }

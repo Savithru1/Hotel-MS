@@ -315,3 +315,97 @@ describe('food orders reach the kitchen, front desk and managers only', () => {
     }
   });
 });
+
+describe('facility bookings reach spa, the front desk and managers only', () => {
+  async function facility(): Promise<string> {
+    const manager = await as(a, 'manager');
+    const res = await manager.post('/api/v1/facilities', {
+      name: `Live Spa ${Date.now()}`,
+      type: 'spa',
+      capacity: 5,
+      slotMinutes: 60,
+      opensAt: '09:00',
+      closesAt: '18:00',
+      pricePaise: 100_000,
+    });
+    expect(res.status).toBe(201);
+    return res.body.data.id as string;
+  }
+
+  it('a new booking is heard by spa, the front desk and managers, and nobody else', async () => {
+    const desk = await as(a, 'front_desk');
+    await checkInGuest(desk, ids, '202', 'Deluxe', '+917000000202');
+    const facilityId = await facility();
+    const live = await everyone();
+
+    const res = await desk.post('/api/v1/facility-bookings', {
+      facilityId,
+      roomId: ids.rooms['202'],
+      date: day(1),
+      startTime: '10:00',
+      notes: 'allergic to peanuts',
+    });
+    expect(res.status).toBe(201);
+    await settle();
+
+    for (const heard of [live.spa, live.frontDesk, live.manager]) {
+      expect(types(heard)).toEqual(['facility_booking.changed']);
+      expect(heard.events[0]?.data).toMatchObject({
+        facilityBookingId: res.body.data.id,
+        roomNumber: '202',
+        status: 'requested',
+        change: 'created',
+      });
+    }
+    for (const silent of [
+      live.kitchen,
+      live.housekeeping,
+      live.maintenance,
+      live.otherManager,
+      live.otherHousekeeping,
+    ]) {
+      expect(silent.events).toHaveLength(0);
+    }
+    expect(JSON.stringify(live.spa.events)).not.toMatch(/In House Guest|7000000202|peanuts/);
+  });
+
+  it('each step is heard by the right people, and the billing hook is sent to no screen', async () => {
+    const desk = await as(a, 'front_desk');
+    const spa = await as(a, 'spa_recreation');
+    const facilityId = await facility();
+    const placed = await desk.post('/api/v1/facility-bookings', {
+      facilityId,
+      roomId: ids.rooms['202'],
+      date: day(1),
+      startTime: '11:00',
+    });
+    const id = placed.body.data.id as string;
+    const live = await everyone();
+
+    for (const step of ['confirm', 'start', 'complete']) {
+      expect((await spa.post(`/api/v1/facility-bookings/${id}/${step}`)).status).toBe(200);
+    }
+    await settle();
+
+    for (const heard of [live.spa, live.frontDesk, live.manager]) {
+      expect(heard.events.map((e) => (e.data as { status: string }).status)).toEqual([
+        'confirmed',
+        'active',
+        'completed',
+      ]);
+      expect(new Set(types(heard))).toEqual(new Set(['facility_booking.changed']));
+    }
+    for (const silent of [
+      live.kitchen,
+      live.housekeeping,
+      live.maintenance,
+      live.otherManager,
+      live.otherHousekeeping,
+    ]) {
+      expect(silent.events).toHaveLength(0);
+    }
+    for (const listener of Object.values(live)) {
+      expect(types(listener)).not.toContain('facility_booking.completed');
+    }
+  });
+});

@@ -1,6 +1,10 @@
 import { Router } from 'express';
 import { authRouter, type LoginLimits } from './modules/auth/auth.routes';
 import { bookingRouter } from './modules/bookings/booking.routes';
+import { billingRouter, paymentsRouter } from './modules/billing/billing.routes';
+import { checkOutRouter } from './modules/billing/checkout.routes';
+import { facilityBookingRouter } from './modules/facilities/facility-booking.routes';
+import { facilityRouter } from './modules/facilities/facility.routes';
 import { foodOrderRouter } from './modules/food-orders/food-order.routes';
 import { housekeepingRouter } from './modules/housekeeping/housekeeping.routes';
 import { maintenanceRouter } from './modules/maintenance/maintenance.routes';
@@ -30,6 +34,10 @@ export function buildApiRouter({ services, loginLimits }: ApiOptions): Router {
     maintenance,
     menu,
     foodOrders,
+    facilities,
+    facilityBookings,
+    billing,
+    checkOut,
   } = services;
   const router = Router();
   router.use('/auth', authRouter(tokens, auth, loginLimits));
@@ -40,9 +48,14 @@ export function buildApiRouter({ services, loginLimits }: ApiOptions): Router {
   router.use('/rooms', roomRoutes.rooms);
   router.use('/guests', guestRouter(tokens, auth, guests));
   router.use('/bookings', bookingRouter(tokens, auth, bookings));
+  router.use('/bookings', checkOutRouter(tokens, auth, checkOut));
   router.use('/housekeeping', housekeepingRouter(tokens, auth, housekeeping));
   router.use('/maintenance', maintenanceRouter(tokens, auth, maintenance));
   router.use('/menu', menuRouter(tokens, auth, menu));
   router.use('/food-orders', foodOrderRouter(tokens, auth, foodOrders));
+  router.use('/facilities', facilityRouter(tokens, auth, facilities));
+  router.use('/facility-bookings', facilityBookingRouter(tokens, auth, facilityBookings));
+  router.use('/bills', billingRouter(tokens, auth, billing));
+  router.use('/payments', paymentsRouter(tokens, auth, billing));
   return router;
 }

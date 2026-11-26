@@ -16,6 +16,7 @@ import { inTransaction } from '../../shared/transaction';
 import type { AuthenticatedStaff } from '../auth/auth.types';
 import { Booking } from '../bookings/booking.model';
 import { MenuItem, type MenuItemDocument } from '../menu/menu-item.model';
+import { Bill } from '../billing/bill.model';
 import { Room } from '../rooms/room.model';
 import { toFoodOrderDto } from './food-order.mapper';
 import { FoodOrder, foodOrderMachine, type FoodOrderDocument } from './food-order.model';
@@ -154,6 +155,13 @@ export function createFoodOrderService(bus: EventBus = eventBus): FoodOrderServi
       const booking = await Booking.findOne({ roomId: room._id, status: 'checked_in' }).lean();
       if (!booking) {
         throw conflict(`Room ${room.number} has no guest checked in`, 'no_guest_in_room');
+      }
+      // Once the invoice is issued nothing more can be added, or it could never be billed.
+      if (await Bill.exists({ bookingId: booking._id, status: 'finalized' })) {
+        throw conflict(
+          'This guest’s invoice has already been issued, so nothing more can be ordered',
+          'invoice_issued',
+        );
       }
 
       // Every price comes from the menu as it is right now. Nothing in the request is a price.
