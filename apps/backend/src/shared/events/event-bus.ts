@@ -40,6 +40,33 @@ export interface AppEvents {
    * in-process bus only and has no screen audience: no client ever receives it.
    */
   'order.delivered': { orderId: string; bookingId: string; roomId: string; subtotalPaise: number };
+  /** A facility booking was made, confirmed, started, completed, cancelled or marked no-show. */
+  'facility_booking.changed': {
+    facilityBookingId: string;
+    code: string;
+    facilityId: string;
+    facilityName: string;
+    roomId: string;
+    roomNumber: string;
+    date: string;
+    startTime: string;
+    status: string;
+    change: string;
+  };
+  /**
+   * A facility booking was completed. This is the hook billing posts from (P1.10). It is sent on
+   * the in-process bus only and has no screen audience: no client ever receives it.
+   */
+  'facility_booking.completed': {
+    facilityBookingId: string;
+    bookingId: string;
+    roomId: string;
+    facilityName: string;
+    facilityType: string;
+    date: string;
+    participants: number;
+    totalPaise: number;
+  };
   /** A booking was created, changed or moved to a new status. The front desk refetches it. */
   'booking.changed': {
     bookingId: string;

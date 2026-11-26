@@ -8,3 +8,5 @@ export * from './guests';
 export * from './bookings';
 export * from './operations';
 export * from './food';
+export * from './facilities';
+export * from './billing';

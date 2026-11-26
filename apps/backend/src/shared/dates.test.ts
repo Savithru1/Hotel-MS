@@ -1,5 +1,44 @@
 import { describe, expect, it } from 'vitest';
-import { addDays, daysBetween, isDateOnly, nightsOf, todayIn } from './dates';
+import { addDays, daysBetween, isDateOnly, localDateTimeToUtc, nightsOf, todayIn } from './dates';
+
+describe('localDateTimeToUtc', () => {
+  it('turns a time in India into the right moment (UTC+5:30, no daylight saving)', () => {
+    expect(localDateTimeToUtc('2026-03-12', '10:00', 'Asia/Kolkata').toISOString()).toBe(
+      '2026-03-12T04:30:00.000Z',
+    );
+  });
+
+  it('crosses midnight correctly: early morning in India is the evening before in UTC', () => {
+    expect(localDateTimeToUtc('2026-03-12', '03:00', 'Asia/Kolkata').toISOString()).toBe(
+      '2026-03-11T21:30:00.000Z',
+    );
+  });
+
+  it('follows daylight saving in a zone that has it', () => {
+    expect(localDateTimeToUtc('2026-01-15', '09:00', 'America/New_York').toISOString()).toBe(
+      '2026-01-15T14:00:00.000Z',
+    );
+    expect(localDateTimeToUtc('2026-07-15', '09:00', 'America/New_York').toISOString()).toBe(
+      '2026-07-15T13:00:00.000Z',
+    );
+  });
+
+  it('is exact on the days the clocks change', () => {
+    // 2026-03-08 02:00 -> 03:00 in New York: 01:30 is still standard time (UTC-5).
+    expect(localDateTimeToUtc('2026-03-08', '01:30', 'America/New_York').toISOString()).toBe(
+      '2026-03-08T06:30:00.000Z',
+    );
+    // 04:00 that day is daylight time (UTC-4).
+    expect(localDateTimeToUtc('2026-03-08', '04:00', 'America/New_York').toISOString()).toBe(
+      '2026-03-08T08:00:00.000Z',
+    );
+  });
+
+  it('round-trips with todayIn for a normal time', () => {
+    const moment = localDateTimeToUtc('2026-03-12', '23:30', 'Asia/Kolkata');
+    expect(todayIn('Asia/Kolkata', moment)).toBe('2026-03-12');
+  });
+});
 
 describe('isDateOnly', () => {
   it.each(['2026-03-12', '2024-02-29'])('accepts %s', (value) => {

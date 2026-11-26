@@ -7,6 +7,21 @@ import {
   MAINTENANCE_TRANSITIONS,
   BOOKING_STATUSES,
   BOOKING_TRANSITIONS,
+  BILL_LINE_KINDS,
+  BILL_STATUSES,
+  GST_CATEGORIES,
+  MANUAL_APPROVAL_LIMIT_PAISE,
+  MANUAL_LINE_CATEGORIES,
+  PAYMENT_KINDS,
+  PAYMENT_METHODS,
+  SAC_CODES,
+  FACILITY_BOOKING_STATUSES,
+  FACILITY_BOOKING_TRANSITIONS,
+  FACILITY_HOLDING_STATUSES,
+  FACILITY_TYPES,
+  MAX_FACILITY_CAPACITY,
+  MAX_SLOT_MINUTES,
+  MIN_SLOT_MINUTES,
   FOOD_ORDER_OPEN_STATUSES,
   FOOD_ORDER_STATUSES,
   FOOD_ORDER_TRANSITIONS,
@@ -163,6 +178,77 @@ describe('food order workflow', () => {
     expect(MAX_LINE_QUANTITY).toBeGreaterThan(0);
     // Only raster formats a browser shows safely. SVG can carry scripts, so it is not listed.
     expect([...MENU_IMAGE_TYPES].sort()).toEqual(['image/jpeg', 'image/png', 'image/webp']);
+  });
+});
+
+describe('facility booking workflow', () => {
+  it('moves requested -> confirmed -> active -> completed, one step at a time', () => {
+    expect(FACILITY_BOOKING_TRANSITIONS.requested).toContain('confirmed');
+    expect(FACILITY_BOOKING_TRANSITIONS.confirmed).toContain('active');
+    expect(FACILITY_BOOKING_TRANSITIONS.active).toEqual(['completed']);
+    expect(FACILITY_BOOKING_TRANSITIONS.requested).not.toContain('active');
+    expect(FACILITY_BOOKING_TRANSITIONS.confirmed).not.toContain('completed');
+  });
+
+  it('can be cancelled before it starts, and marked no-show only once confirmed', () => {
+    expect(FACILITY_BOOKING_TRANSITIONS.requested).toContain('cancelled');
+    expect(FACILITY_BOOKING_TRANSITIONS.confirmed).toContain('cancelled');
+    expect(FACILITY_BOOKING_TRANSITIONS.confirmed).toContain('no_show');
+    expect(FACILITY_BOOKING_TRANSITIONS.requested).not.toContain('no_show');
+    expect(FACILITY_BOOKING_TRANSITIONS.active).not.toContain('cancelled');
+  });
+
+  it('ends in completed, cancelled or no-show with no way back', () => {
+    const terminal = FACILITY_BOOKING_STATUSES.filter(
+      (s) => FACILITY_BOOKING_TRANSITIONS[s].length === 0,
+    );
+    expect(terminal.sort()).toEqual(['cancelled', 'completed', 'no_show']);
+  });
+
+  it('has a row for every status and only points at real statuses', () => {
+    for (const status of FACILITY_BOOKING_STATUSES) {
+      expect(FACILITY_BOOKING_TRANSITIONS[status]).toBeDefined();
+      for (const next of FACILITY_BOOKING_TRANSITIONS[status]) {
+        expect(FACILITY_BOOKING_STATUSES).toContain(next);
+      }
+    }
+  });
+
+  it('holds a place in the slot while requested, confirmed or active, and not afterwards', () => {
+    expect([...FACILITY_HOLDING_STATUSES]).toEqual(['requested', 'confirmed', 'active']);
+  });
+
+  it('lists the facility types and sane capacity and slot limits', () => {
+    expect([...FACILITY_TYPES].sort()).toEqual(['activity', 'gym', 'other', 'pool', 'spa']);
+    expect(MAX_FACILITY_CAPACITY).toBeGreaterThan(1);
+    expect(MIN_SLOT_MINUTES).toBeLessThan(MAX_SLOT_MINUTES);
+  });
+});
+
+describe('billing constants', () => {
+  it('has the two bill statuses and the five kinds of bill line', () => {
+    expect([...BILL_STATUSES]).toEqual(['open', 'finalized']);
+    expect([...BILL_LINE_KINDS].sort()).toEqual(['charge', 'discount', 'facility', 'food', 'room']);
+  });
+
+  it('knows the four tax categories and has a SAC code for each', () => {
+    expect([...GST_CATEGORIES].sort()).toEqual(['food', 'other', 'room', 'spa_recreation']);
+    for (const category of GST_CATEGORIES) expect(SAC_CODES[category]).toMatch(/^\d{6}$/);
+  });
+
+  it('only lets staff add manual charges under the categories that have a simple tax rule', () => {
+    expect([...MANUAL_LINE_CATEGORIES].sort()).toEqual(['food', 'other', 'spa_recreation']);
+    expect(MANUAL_LINE_CATEGORIES).not.toContain('room' as never);
+  });
+
+  it('lists the payment methods and kinds', () => {
+    expect([...PAYMENT_METHODS].sort()).toEqual(['bank_transfer', 'card', 'cash', 'other', 'upi']);
+    expect([...PAYMENT_KINDS].sort()).toEqual(['payment', 'refund']);
+  });
+
+  it('sets a whole-paise limit above which a manager has to approve a manual charge', () => {
+    expect(Number.isInteger(MANUAL_APPROVAL_LIMIT_PAISE)).toBe(true);
+    expect(MANUAL_APPROVAL_LIMIT_PAISE).toBeGreaterThan(0);
   });
 });
 
