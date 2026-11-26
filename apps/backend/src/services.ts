@@ -2,6 +2,14 @@ import type { Env } from './config/environment';
 import { createAuthService, type AuthService } from './modules/auth/auth.service';
 import { createTokenService, type TokenService } from './modules/auth/token.service';
 import { createBookingService, type BookingService } from './modules/bookings/booking.service';
+import {
+  createHousekeepingService,
+  type HousekeepingService,
+} from './modules/housekeeping/housekeeping.service';
+import {
+  createMaintenanceService,
+  type MaintenanceService,
+} from './modules/maintenance/maintenance.service';
 import { createPropertyService, type PropertyService } from './modules/properties/property.service';
 import { createRoomService, type RoomService } from './modules/rooms/room.service';
 import { createStaffService, type StaffService } from './modules/staff/staff.service';
@@ -16,6 +24,8 @@ export interface Services {
   rooms: RoomService;
   guests: GuestService;
   bookings: BookingService;
+  housekeeping: HousekeepingService;
+  maintenance: MaintenanceService;
 }
 
 export function buildServices(env: Env): Services {
@@ -30,5 +40,7 @@ export function buildServices(env: Env): Services {
     rooms,
     guests: createGuestService(),
     bookings: createBookingService(properties, rooms),
+    housekeeping: createHousekeepingService(rooms),
+    maintenance: createMaintenanceService(rooms),
   };
 }

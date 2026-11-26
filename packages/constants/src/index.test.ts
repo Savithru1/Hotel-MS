@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import {
   ASSIGNABLE_ROLES,
+  HOUSEKEEPING_STATUSES,
+  HOUSEKEEPING_TRANSITIONS,
+  MAINTENANCE_STATUSES,
+  MAINTENANCE_TRANSITIONS,
   BOOKING_STATUSES,
   BOOKING_TRANSITIONS,
   NIGHT_HOLDING_STATUSES,
@@ -109,5 +113,26 @@ describe('booking workflow', () => {
 
   it('cannot go straight from pending to checked in', () => {
     expect(BOOKING_TRANSITIONS.pending).not.toContain('checked_in');
+  });
+});
+
+describe('housekeeping and maintenance workflows', () => {
+  it('moves housekeeping new -> in progress -> completed, with cancel only before work starts', () => {
+    expect(HOUSEKEEPING_TRANSITIONS.new).toEqual(['in_progress', 'cancelled']);
+    expect(HOUSEKEEPING_TRANSITIONS.in_progress).toEqual(['completed']);
+    expect(HOUSEKEEPING_TRANSITIONS.completed).toEqual([]);
+    expect(HOUSEKEEPING_TRANSITIONS.cancelled).toEqual([]);
+  });
+
+  it('moves maintenance new -> assigned -> in progress -> resolved, and never skips assignment', () => {
+    expect(MAINTENANCE_TRANSITIONS.new).toEqual(['assigned']);
+    expect(MAINTENANCE_TRANSITIONS.assigned).toContain('in_progress');
+    expect(MAINTENANCE_TRANSITIONS.assigned).not.toContain('resolved');
+    expect(MAINTENANCE_TRANSITIONS.resolved).toEqual([]);
+  });
+
+  it('has a row for every status', () => {
+    for (const s of HOUSEKEEPING_STATUSES) expect(HOUSEKEEPING_TRANSITIONS[s]).toBeDefined();
+    for (const s of MAINTENANCE_STATUSES) expect(MAINTENANCE_TRANSITIONS[s]).toBeDefined();
   });
 });

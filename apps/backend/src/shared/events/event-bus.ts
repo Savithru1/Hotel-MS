@@ -7,6 +7,25 @@ import type { Types } from 'mongoose';
  * stays in one place. Add an entry here when a module starts emitting a new event.
  */
 export interface AppEvents {
+  /** A housekeeping request was created, assigned, started, completed, cancelled or escalated. */
+  'housekeeping.changed': {
+    requestId: string;
+    roomId: string;
+    roomNumber: string;
+    status: string;
+    change: string;
+    escalated: boolean;
+  };
+  /** A maintenance issue was created, assigned, started, resolved or escalated. */
+  'maintenance.changed': {
+    issueId: string;
+    roomId: string;
+    roomNumber: string;
+    status: string;
+    change: string;
+    escalated: boolean;
+    priority: string;
+  };
   /** A booking was created, changed or moved to a new status. The front desk refetches it. */
   'booking.changed': {
     bookingId: string;

@@ -136,3 +136,57 @@ export const NIGHT_HOLDING_STATUSES: readonly BookingStatus[] = [
 ];
 
 export const MAX_STAY_NIGHTS = 90;
+
+export const HOUSEKEEPING_STATUSES = ['new', 'in_progress', 'completed', 'cancelled'] as const;
+export type HousekeepingStatus = (typeof HOUSEKEEPING_STATUSES)[number];
+
+/** New -> In Progress -> Completed. A mistaken request can be cancelled before work starts. */
+export const HOUSEKEEPING_TRANSITIONS: Readonly<
+  Record<HousekeepingStatus, readonly HousekeepingStatus[]>
+> = {
+  new: ['in_progress', 'cancelled'],
+  in_progress: ['completed'],
+  completed: [],
+  cancelled: [],
+};
+
+export const SERVICE_REQUEST_TYPES = [
+  'towels',
+  'toiletries',
+  'room_cleaning',
+  'pillows_blankets',
+  'other',
+] as const;
+export type ServiceRequestType = (typeof SERVICE_REQUEST_TYPES)[number];
+
+export const MAINTENANCE_STATUSES = ['new', 'assigned', 'in_progress', 'resolved'] as const;
+export type MaintenanceStatus = (typeof MAINTENANCE_STATUSES)[number];
+
+/**
+ * New -> Assigned -> In Progress -> Resolved. Handing an issue to someone else is the move
+ * Assigned -> Assigned (or In Progress -> Assigned, which puts it back in the queue of the new person).
+ */
+export const MAINTENANCE_TRANSITIONS: Readonly<
+  Record<MaintenanceStatus, readonly MaintenanceStatus[]>
+> = {
+  new: ['assigned'],
+  assigned: ['assigned', 'in_progress'],
+  in_progress: ['assigned', 'resolved'],
+  resolved: [],
+};
+
+export const MAINTENANCE_CATEGORIES = [
+  'air_conditioning',
+  'tv',
+  'wifi',
+  'plumbing',
+  'electrical',
+  'other',
+] as const;
+export type MaintenanceCategory = (typeof MAINTENANCE_CATEGORIES)[number];
+
+export const MAINTENANCE_PRIORITIES = ['low', 'medium', 'high', 'urgent'] as const;
+export type MaintenancePriority = (typeof MAINTENANCE_PRIORITIES)[number];
+
+export const REQUEST_PRIORITIES = ['normal', 'urgent'] as const;
+export type RequestPriority = (typeof REQUEST_PRIORITIES)[number];

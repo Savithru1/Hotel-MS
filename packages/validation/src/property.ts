@@ -98,7 +98,7 @@ export const gstRuleSetSchema = z
         const next = slabs[index + 1];
         if (
           slab.upToPaise === null ||
-          (next?.upToPaise != null && next.upToPaise <= slab.upToPaise)
+          (next?.upToPaise !== null && next?.upToPaise !== undefined && next.upToPaise <= slab.upToPaise)
         ) {
           context.addIssue({
             code: 'custom',
