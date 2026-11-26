@@ -148,7 +148,10 @@ export function Card({
   className?: string;
 }) {
   return (
-    <section className={`rounded-lg bg-white shadow-sm ring-1 ring-stone-200 ${className}`}>
+    <section
+      {...(title ? { 'aria-label': title } : {})}
+      className={`rounded-lg bg-white shadow-sm ring-1 ring-stone-200 ${className}`}
+    >
       {(title || action) && (
         <header className="flex items-center justify-between gap-3 border-b border-stone-100 px-4 py-3">
           {title && <h2 className="text-sm font-semibold tracking-wide text-slate-700">{title}</h2>}

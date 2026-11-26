@@ -38,7 +38,7 @@ export function AppLayout() {
 
   return (
     <div className="min-h-screen md:flex">
-      <aside className="flex flex-col gap-6 bg-slate-900 p-4 text-slate-200 md:min-h-screen md:w-60 md:shrink-0">
+      <aside className="flex flex-col gap-6 bg-slate-900 p-4 text-slate-200 md:min-h-screen md:w-60 md:shrink-0 print:hidden">
         <div>
           <p className="font-serif text-lg text-amber-200">{property.name}</p>
           <p className="text-xs text-slate-400">Staff</p>

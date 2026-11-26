@@ -18,6 +18,8 @@ export const NAV_ITEMS: readonly NavItem[] = [
   { path: '/bookings/new', label: 'New booking', roles: FRONT_DESK_TEAM, group: 'Front desk' },
   { path: '/calendar', label: 'Calendar', roles: FRONT_DESK_TEAM, group: 'Front desk' },
   { path: '/guests', label: 'Guests', roles: FRONT_DESK_TEAM, group: 'Front desk' },
+  { path: '/bills', label: 'Bills', roles: FRONT_DESK_TEAM, group: 'Front desk' },
+  { path: '/payments', label: 'Payments', roles: FRONT_DESK_TEAM, group: 'Front desk' },
   {
     path: '/housekeeping',
     label: 'Housekeeping',
@@ -36,9 +38,16 @@ export const NAV_ITEMS: readonly NavItem[] = [
     roles: ['kitchen', 'front_desk', ...MANAGEMENT],
     group: 'Operations',
   },
+  {
+    path: '/spa',
+    label: 'Spa & recreation',
+    roles: ['spa_recreation', 'front_desk', ...MANAGEMENT],
+    group: 'Operations',
+  },
   { path: '/rooms', label: 'Rooms', roles: FRONT_DESK_TEAM, group: 'Setup' },
   { path: '/room-types', label: 'Room types', roles: MANAGEMENT, group: 'Setup' },
   { path: '/menu', label: 'Menu', roles: MANAGEMENT, group: 'Setup' },
+  { path: '/facilities', label: 'Facilities', roles: MANAGEMENT, group: 'Setup' },
   { path: '/staff', label: 'Staff', roles: MANAGEMENT, group: 'Setup' },
   { path: '/property', label: 'Property', roles: MANAGEMENT, group: 'Setup' },
 ];
@@ -57,7 +66,7 @@ export function homePathFor(role: StaffRole): string {
   if (role === 'housekeeping') return '/housekeeping';
   if (role === 'maintenance') return '/maintenance';
   if (role === 'kitchen') return '/kitchen';
-  if (role === 'spa_recreation') return '/welcome';
+  if (role === 'spa_recreation') return '/spa';
   return '/front-desk';
 }
 

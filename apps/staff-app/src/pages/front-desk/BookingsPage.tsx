@@ -262,6 +262,14 @@ function BookingDialog({ booking, onClose }: { booking: BookingDto; onClose: () 
                 No-show
               </Button>
             )}
+            {(booking.status === 'checked_in' || booking.status === 'checked_out') && (
+              <Link
+                to={`/bills/${booking.id}`}
+                className="rounded-md bg-teal-800 px-4 py-2 text-sm font-medium text-white hover:bg-teal-900"
+              >
+                {booking.status === 'checked_in' ? 'Bill and check-out' : 'View bill'}
+              </Link>
+            )}
             {holding && (
               <Button variant="secondary" onClick={() => setMode('edit')}>
                 Change dates

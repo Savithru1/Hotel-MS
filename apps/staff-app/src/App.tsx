@@ -8,11 +8,15 @@ import { RedirectIfSignedIn, RequireAuth, RequirePage } from './auth/guards';
 import { homePathFor } from './auth/permissions';
 import { ToastProvider } from './components/Toast';
 import { AppLayout } from './layouts/AppLayout';
+import { BillPage } from './pages/billing/BillPage';
+import { BillsPage } from './pages/billing/BillsPage';
+import { PaymentsPage } from './pages/billing/PaymentsPage';
 import { BookingsPage } from './pages/front-desk/BookingsPage';
 import { CalendarPage } from './pages/front-desk/CalendarPage';
 import { FrontDeskPage } from './pages/front-desk/FrontDeskPage';
 import { GuestsPage } from './pages/front-desk/GuestsPage';
 import { NewBookingPage } from './pages/front-desk/NewBookingPage';
+import { FacilitiesPage } from './pages/facilities/FacilitiesPage';
 import { HousekeepingPage } from './pages/housekeeping/HousekeepingPage';
 import { KitchenPage } from './pages/kitchen/KitchenPage';
 import { ChangePasswordPage } from './pages/login/ChangePasswordPage';
@@ -21,6 +25,7 @@ import { MaintenancePage } from './pages/maintenance/MaintenancePage';
 import { MenuPage } from './pages/manager/MenuPage';
 import { PropertyPage } from './pages/manager/PropertyPage';
 import { RoomTypesPage } from './pages/manager/RoomTypesPage';
+import { SpaPage } from './pages/spa/SpaPage';
 import { RoomsPage } from './pages/manager/RoomsPage';
 import { StaffPage } from './pages/manager/StaffPage';
 import { WelcomePage } from './pages/WelcomePage';
@@ -92,10 +97,22 @@ export function AppRoutes({ createSocket }: { createSocket?: SocketFactory }) {
           {page('/bookings/new', <NewBookingPage />)}
           {page('/calendar', <CalendarPage />)}
           {page('/guests', <GuestsPage />)}
+          {page('/bills', <BillsPage />)}
+          <Route
+            path="bills/:bookingId"
+            element={
+              <RequirePage path="/bills">
+                <BillPage />
+              </RequirePage>
+            }
+          />
+          {page('/payments', <PaymentsPage />)}
           {page('/housekeeping', <HousekeepingPage />)}
           {page('/maintenance', <MaintenancePage />)}
           {page('/kitchen', <KitchenPage />)}
           {page('/menu', <MenuPage />)}
+          {page('/spa', <SpaPage />)}
+          {page('/facilities', <FacilitiesPage />)}
           {page('/rooms', <RoomsPage />)}
           {page('/room-types', <RoomTypesPage />)}
           {page('/staff', <StaffPage />)}

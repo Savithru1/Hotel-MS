@@ -24,9 +24,22 @@ describe('menu by role', () => {
     expect(navFor('maintenance').map((item) => item.path)).toEqual(['/maintenance']);
   });
 
-  it('shows the kitchen its own screen, and spa staff nothing yet (their dashboard is later)', () => {
+  it('shows the kitchen its own screen, and spa staff theirs', () => {
     expect(navFor('kitchen').map((item) => item.path)).toEqual(['/kitchen']);
-    expect(navFor('spa_recreation')).toEqual([]);
+    expect(navFor('spa_recreation').map((item) => item.path)).toEqual(['/spa']);
+  });
+
+  it('lets the front desk open the spa screen, but only management edit facilities', () => {
+    expect(canOpen('front_desk', '/spa')).toBe(true);
+    expect(canOpen('front_desk', '/facilities')).toBe(false);
+    expect(canOpen('spa_recreation', '/facilities')).toBe(false);
+    for (const role of ['manager', 'property_admin', 'platform_admin'] as const) {
+      expect(canOpen(role, '/facilities')).toBe(true);
+      expect(canOpen(role, '/spa')).toBe(true);
+    }
+    for (const role of ['kitchen', 'housekeeping', 'maintenance'] as const) {
+      expect(canOpen(role, '/spa')).toBe(false);
+    }
   });
 
   it('lets the front desk open the kitchen screen, but only management edit the menu', () => {
@@ -58,9 +71,23 @@ describe('menu by role', () => {
   });
 });
 
+describe('billing screens', () => {
+  it('are for the front desk and management, never for the other departments', () => {
+    for (const path of ['/bills', '/payments']) {
+      for (const role of ['front_desk', 'manager', 'property_admin', 'platform_admin'] as const) {
+        expect(canOpen(role, path)).toBe(true);
+      }
+      for (const role of ['kitchen', 'housekeeping', 'maintenance', 'spa_recreation'] as const) {
+        expect(canOpen(role, path)).toBe(false);
+      }
+    }
+  });
+});
+
 describe('landing page and role helpers', () => {
-  it('lands the kitchen on the kitchen screen', () => {
+  it('lands the kitchen on the kitchen screen and spa staff on the spa screen', () => {
     expect(homePathFor('kitchen')).toBe('/kitchen');
+    expect(homePathFor('spa_recreation')).toBe('/spa');
   });
 
   it('sends each role to a page it may open', () => {
