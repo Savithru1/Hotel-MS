@@ -31,3 +31,4 @@ export interface ApiFailure {
 export type ApiResponse<T> = ApiSuccess<T> | ApiFailure;
 
 export * from './auth';
+export * from './property';

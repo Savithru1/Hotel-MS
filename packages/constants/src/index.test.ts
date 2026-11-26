@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
   ASSIGNABLE_ROLES,
+  MANUAL_ROOM_STATUSES,
+  ROOM_STATUS_TRANSITIONS,
   DEPARTMENTS,
   ROLE_RANK,
   ROOM_STATUSES,
@@ -67,5 +69,26 @@ describe('departments and role ranking', () => {
   it('never offers platform_admin for assignment', () => {
     expect(ASSIGNABLE_ROLES).not.toContain('platform_admin');
     expect(ASSIGNABLE_ROLES).toContain('manager');
+  });
+});
+
+describe('room status transitions', () => {
+  it('has a row for every status and only points at real statuses', () => {
+    for (const status of ROOM_STATUSES) {
+      expect(ROOM_STATUS_TRANSITIONS[status]).toBeDefined();
+      for (const next of ROOM_STATUS_TRANSITIONS[status]) expect(ROOM_STATUSES).toContain(next);
+    }
+  });
+
+  it('only lets an occupied room go to cleaning, and never lets a status loop to itself', () => {
+    expect(ROOM_STATUS_TRANSITIONS.occupied).toEqual(['cleaning']);
+    for (const status of ROOM_STATUSES) {
+      expect(ROOM_STATUS_TRANSITIONS[status]).not.toContain(status);
+    }
+  });
+
+  it('leaves booking-driven statuses out of the manual list', () => {
+    expect(MANUAL_ROOM_STATUSES).not.toContain('occupied' as never);
+    expect(MANUAL_ROOM_STATUSES).not.toContain('reserved' as never);
   });
 });

@@ -11,6 +11,9 @@ export function useTestDatabase(): void {
 
   beforeAll(async () => {
     await mongoose.connect(inject('mongoUri'), { dbName });
+    // Unique indexes are what the duplicate checks finally rely on, so wait until they exist
+    // instead of racing the first writes of the test file against the background index build.
+    await Promise.all(mongoose.modelNames().map((name) => mongoose.model(name).init()));
   });
 
   afterAll(async () => {

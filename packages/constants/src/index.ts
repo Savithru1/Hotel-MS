@@ -76,3 +76,34 @@ export function outranks(actor: StaffRole, target: StaffRole): boolean {
 
 /** Roles that may be handed out through the API. `platform_admin` is only ever set by seeding. */
 export const ASSIGNABLE_ROLES = STAFF_ROLES.filter((role) => role !== 'platform_admin');
+
+/**
+ * Which room status can follow which. Anything not listed is refused. An occupied room can only
+ * go to cleaning (check-out), and a reserved room cannot be taken out of service while a guest
+ * is due, so those need the booking changed first.
+ */
+export const ROOM_STATUS_TRANSITIONS: Readonly<Record<RoomStatus, readonly RoomStatus[]>> = {
+  available: ['reserved', 'occupied', 'cleaning', 'maintenance', 'out_of_service'],
+  reserved: ['available', 'occupied'],
+  occupied: ['cleaning'],
+  cleaning: ['available', 'maintenance', 'out_of_service'],
+  maintenance: ['available', 'cleaning', 'out_of_service'],
+  out_of_service: ['available', 'cleaning', 'maintenance'],
+};
+
+/** The statuses staff may set by hand. The rest are set by bookings and by work queues. */
+export const MANUAL_ROOM_STATUSES = ['available', 'cleaning', 'out_of_service'] as const;
+export type ManualRoomStatus = (typeof MANUAL_ROOM_STATUSES)[number];
+
+/** Money is whole paise. Nothing in the system stores rupees as a fraction. */
+export const PAISE_PER_RUPEE = 100;
+export const MAX_ROOM_RATE_PAISE = 50_000_000; // 5 lakh rupees per night
+
+export const GUEST_ID_TYPES = [
+  'aadhaar',
+  'passport',
+  'driving_licence',
+  'voter_id',
+  'other',
+] as const;
+export type GuestIdType = (typeof GUEST_ID_TYPES)[number];

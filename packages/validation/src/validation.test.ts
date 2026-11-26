@@ -1,7 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import { changePasswordSchema, passwordSchema, staffLoginSchema } from './auth';
 import { paginationSchema } from './common';
+import { createGuestSchema } from './guests';
 import { normalizePhone, phoneSchema } from './phone';
+import { gstRuleSetSchema, gstinSchema, timeOfDaySchema, timezoneSchema } from './property';
+import {
+  createRoomTypeSchema,
+  ratePaiseSchema,
+  roomNumberSchema,
+  setRoomStatusSchema,
+} from './rooms';
 import { createStaffSchema, listStaffQuerySchema, updateStaffSchema } from './staff';
 
 describe('normalizePhone', () => {
@@ -124,5 +132,76 @@ describe('pagination', () => {
       active: false,
       page: 2,
     });
+  });
+});
+
+describe('property, room and guest schemas', () => {
+  it('accepts a real GSTIN and uppercases it', () => {
+    expect(gstinSchema.parse('27abcde1234f1z5')).toBe('27ABCDE1234F1Z5');
+    expect(gstinSchema.safeParse('27ABCDE1234F1Z').success).toBe(false);
+  });
+
+  it('checks timezones and times', () => {
+    expect(timezoneSchema.safeParse('Asia/Kolkata').success).toBe(true);
+    expect(timezoneSchema.safeParse('Not/AZone').success).toBe(false);
+    expect(timeOfDaySchema.safeParse('09:30').success).toBe(true);
+    expect(timeOfDaySchema.safeParse('9:30').success).toBe(false);
+  });
+
+  it('only accepts whole-paise tariffs within range', () => {
+    expect(ratePaiseSchema.safeParse(250_000).success).toBe(true);
+    for (const bad of [-1, 0.5, '100', Number.NaN, 60_000_000]) {
+      expect(ratePaiseSchema.safeParse(bad).success, String(bad)).toBe(false);
+    }
+  });
+
+  it('keeps room numbers as typed labels', () => {
+    expect(roomNumberSchema.parse(' 204 ')).toBe('204');
+    expect(roomNumberSchema.safeParse('B-12').success).toBe(true);
+    expect(roomNumberSchema.safeParse('<script>').success).toBe(false);
+  });
+
+  it('removes duplicate amenities and unknown fields from a room type', () => {
+    const parsed = createRoomTypeSchema.parse({
+      name: 'Deluxe',
+      capacity: 2,
+      ratePaise: 1000,
+      amenities: ['TV', 'TV'],
+      propertyId: 'x',
+    });
+    expect(parsed).toEqual({ name: 'Deluxe', capacity: 2, ratePaise: 1000, amenities: ['TV'] });
+  });
+
+  it('only allows the manual room statuses', () => {
+    expect(setRoomStatusSchema.safeParse({ status: 'cleaning' }).success).toBe(true);
+    expect(setRoomStatusSchema.safeParse({ status: 'occupied' }).success).toBe(false);
+  });
+
+  it('normalises the phone in a guest record', () => {
+    expect(createGuestSchema.parse({ name: 'A B', phone: '98765 43210' }).phone).toBe(
+      '+919876543210',
+    );
+  });
+
+  it('requires GST slabs to rise and end unlimited', () => {
+    const rules = {
+      effectiveFrom: '2027-04-01',
+      room: {
+        slabs: [
+          { upToPaise: 100, ratePercent: 5 },
+          { upToPaise: null, ratePercent: 18 },
+        ],
+      },
+      food: { ratePercent: 5, highTariffThresholdPaise: 750_000, highTariffRatePercent: 18 },
+      spaRecreation: { ratePercent: 18 },
+      other: { ratePercent: 18 },
+    };
+    expect(gstRuleSetSchema.safeParse(rules).success).toBe(true);
+    expect(
+      gstRuleSetSchema.safeParse({
+        ...rules,
+        room: { slabs: [{ upToPaise: 100, ratePercent: 5 }] },
+      }).success,
+    ).toBe(false);
   });
 });
