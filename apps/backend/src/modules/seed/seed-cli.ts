@@ -1,6 +1,7 @@
 import { connectDatabase, disconnectDatabase } from '../../config/database';
 import { loadEnv } from '../../config/environment';
 import { SEED_PASSWORD, seedDevelopmentData } from './seed';
+import { seedDevelopmentMenu } from './seed-menu';
 
 /**
  * `pnpm --filter @hospitality/backend seed`. Creates the two development properties and their
@@ -20,6 +21,7 @@ async function main(): Promise<void> {
   await connectDatabase(env.MONGODB_URI);
   try {
     const properties = await seedDevelopmentData({ bcryptCost: env.BCRYPT_COST });
+    for (const property of properties) await seedDevelopmentMenu(property.id);
     const lines = properties.map(
       (property) =>
         `${property.name} (property link name: ${property.slug})\n` +
