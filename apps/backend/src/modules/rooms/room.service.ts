@@ -5,6 +5,8 @@ import { recordAudit } from '../../shared/audit/audit';
 import { eventBus, type EventBus } from '../../shared/events/event-bus';
 import { badRequest, conflict, notFound } from '../../shared/errors';
 import { transition } from '../../shared/state-machine';
+import { Booking } from '../bookings/booking.model';
+import { MaintenanceIssue } from '../maintenance/maintenance.model';
 import { Room, type RoomDocument } from './room.model';
 import { roomStatusMachine } from './room-status';
 import { RoomType, type RoomTypeDocument } from './room-type.model';
@@ -66,6 +68,12 @@ export interface RoomService {
    * route) and by bookings, housekeeping and maintenance, which may use any legal move.
    */
   changeStatus(id: string, to: RoomStatus, options?: ChangeStatusOptions): Promise<RoomDto>;
+  /**
+   * A change made by hand by staff. On top of the workflow table it refuses a room with a
+   * guest in it and a room that an open maintenance issue is holding out of service, because
+   * those are only released by check-out and by resolving the issue.
+   */
+  changeStatusByHand(id: string, to: RoomStatus, note?: string): Promise<RoomDto>;
 }
 
 export const toRoomTypeDto = (type: RoomTypeDocument): RoomTypeDto => ({
@@ -109,7 +117,7 @@ export function createRoomService(bus: EventBus = eventBus): RoomService {
 
   const isDuplicate = (error: unknown): boolean => (error as { code?: unknown })?.code === 11000;
 
-  return {
+  const service: RoomService = {
     async listTypes() {
       const types = await RoomType.find()
         .sort({ name: 1 })
@@ -226,7 +234,14 @@ export function createRoomService(bus: EventBus = eventBus): RoomService {
       if (input.roomTypeId && input.roomTypeId !== before.roomTypeId.toHexString()) {
         await requireUsableType(input.roomTypeId);
       }
-      if (input.active === false && BUSY.includes(before.status)) {
+      if (
+        input.active === false &&
+        (BUSY.includes(before.status) ||
+          (await Booking.exists({
+            roomId: before._id,
+            status: { $in: ['pending', 'confirmed', 'checked_in'] },
+          })))
+      ) {
         throw conflict('A room with a guest in it or due in cannot be retired', 'room_in_use');
       }
 
@@ -255,6 +270,34 @@ export function createRoomService(bus: EventBus = eventBus): RoomService {
       return toDto(updated);
     },
 
+    async changeStatusByHand(id, to, note) {
+      const room = await Room.findOne({ _id: id }).lean();
+      if (!room) throw notFound('Room not found');
+      if (
+        room.status === 'occupied' ||
+        (await Booking.exists({ roomId: room._id, status: 'checked_in' }))
+      ) {
+        throw conflict(
+          `Room ${room.number} has a guest in it. Check-out changes it, not a manual edit.`,
+          'room_occupied',
+        );
+      }
+      if (
+        room.status === 'maintenance' &&
+        (await MaintenanceIssue.exists({
+          roomId: room._id,
+          takesRoomOutOfService: true,
+          status: { $in: ['new', 'assigned', 'in_progress'] },
+        }))
+      ) {
+        throw conflict(
+          `Room ${room.number} is held out of service by an open maintenance issue. Resolve the issue to release it.`,
+          'held_by_maintenance',
+        );
+      }
+      return service.changeStatus(id, to, note ? { note } : {});
+    },
+
     async changeStatus(id, to, options = {}) {
       const updated = await transition({
         model: Room,
@@ -273,6 +316,7 @@ export function createRoomService(bus: EventBus = eventBus): RoomService {
       return toDto(updated.toObject());
     },
   };
+  return service;
 }
 
 /** Tells the front desk, housekeeping and managers that a room changed status. */

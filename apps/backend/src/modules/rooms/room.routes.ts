@@ -98,7 +98,7 @@ export function roomRouters(
     async (req, res) => {
       const { id } = req.validated?.params as { id: string };
       const { status, note } = req.validated?.body as { status: RoomStatus; note?: string };
-      res.json({ success: true, data: await rooms.changeStatus(id, status, { note }) });
+      res.json({ success: true, data: await rooms.changeStatusByHand(id, status, note) });
     },
   );
 

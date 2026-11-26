@@ -114,7 +114,7 @@ export async function listBookings(
   if (input.from) filter.checkOutDate = { $gt: input.from };
   if (input.q) {
     const text = new RegExp(escapeRegExp(input.q), 'i');
-    const digits = new RegExp(escapeRegExp(input.q.replace(/[\s()-]/g, '')), 'i');
+    const digits = new RegExp(escapeRegExp(input.q.replace(/[\s()-]/g, '') || input.q), 'i');
     filter.$or = [
       { bookingCode: text },
       { 'guestSnapshot.name': text },

@@ -16,6 +16,7 @@ import type { AuthenticatedStaff } from '../auth/auth.types';
 import { Booking } from '../bookings/booking.model';
 import { Room } from '../rooms/room.model';
 import { announceRoomStatus, type RoomService } from '../rooms/room.service';
+import { ServiceRequest } from '../service-requests/service-request.model';
 import { assertAssignable, assigneeMap } from '../staff/staff-lookup';
 import {
   MaintenanceIssue,
@@ -316,7 +317,7 @@ export function createMaintenanceService(
         });
 
         // Release the room, but only if no other open issue is still keeping it out of service.
-        let freed: { roomId: Types.ObjectId; roomNumber: string } | null = null;
+        let freed: { roomId: Types.ObjectId; roomNumber: string; status: string } | null = null;
         if (moved.takesRoomOutOfService) {
           const stillBlocked = await MaintenanceIssue.exists({
             _id: { $ne: moved._id },
@@ -326,8 +327,16 @@ export function createMaintenanceService(
           }).session(session);
           const room = await Room.findOne({ _id: moved.roomId }).session(session).lean();
           if (!stillBlocked && room?.status === 'maintenance') {
-            await rooms.changeStatus(room._id.toHexString(), 'available', { session });
-            freed = { roomId: room._id, roomNumber: room.number };
+            // If a cleaning is still waiting for this room, it goes back to cleaning so the
+            // housekeeper finishing that task is what makes it available.
+            const needsCleaning = await ServiceRequest.exists({
+              roomId: room._id,
+              type: 'room_cleaning',
+              status: { $in: ['new', 'in_progress'] },
+            }).session(session);
+            const next = needsCleaning ? 'cleaning' : 'available';
+            await rooms.changeStatus(room._id.toHexString(), next, { session });
+            freed = { roomId: room._id, roomNumber: room.number, status: next };
           }
         }
         return { updated: moved.toObject(), released: freed };
@@ -340,7 +349,7 @@ export function createMaintenanceService(
           updated.propertyId,
           released.roomId,
           released.roomNumber,
-          'available',
+          released.status,
           'maintenance',
         );
       }

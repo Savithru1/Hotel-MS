@@ -263,7 +263,7 @@ export function createHousekeepingService(
           id,
           machine: housekeepingMachine,
           to: 'completed',
-          set: { completedAt: new Date() },
+          set: { completedAt: new Date(), escalated: false },
           ...(note ? { note } : {}),
           session,
         });
@@ -299,6 +299,7 @@ export function createHousekeepingService(
         id,
         machine: housekeepingMachine,
         to: 'cancelled',
+        set: { escalated: false },
         note: reason,
       });
       const updated = moved.toObject();

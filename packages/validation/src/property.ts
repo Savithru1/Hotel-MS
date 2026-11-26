@@ -30,7 +30,11 @@ export const timeOfDaySchema = z.string().regex(TIME, 'must be a time like 14:00
 export const dateOnlySchema = z
   .string()
   .regex(DATE, 'must be a date like 2026-04-01')
-  .refine((value) => !Number.isNaN(Date.parse(`${value}T00:00:00Z`)), 'must be a real date');
+  // Date.parse rolls 31 February over to March, so the date is checked by round-tripping it.
+  .refine((value) => {
+    const parsed = new Date(`${value}T00:00:00Z`);
+    return !Number.isNaN(parsed.getTime()) && parsed.toISOString().startsWith(value);
+  }, 'must be a real date');
 
 export const addressSchema = z.object({
   line1: shortText(120),
@@ -98,7 +102,9 @@ export const gstRuleSetSchema = z
         const next = slabs[index + 1];
         if (
           slab.upToPaise === null ||
-          (next?.upToPaise !== null && next?.upToPaise !== undefined && next.upToPaise <= slab.upToPaise)
+          (next?.upToPaise !== null &&
+            next?.upToPaise !== undefined &&
+            next.upToPaise <= slab.upToPaise)
         ) {
           context.addIssue({
             code: 'custom',

@@ -491,7 +491,15 @@ export function createBookingService(
               { returnDocument: 'after', session },
             ).lean();
             if (!moved) throw conflict('The booking changed, please reload', 'conflict');
-            await writeNights(moved, booking.checkInDate, booking.checkOutDate, session);
+            // The dates may have been changed by someone else since we read the booking.
+            // The nights must follow the booking as it is now, so refuse if they moved.
+            if (
+              moved.checkInDate !== booking.checkInDate ||
+              moved.checkOutDate !== booking.checkOutDate
+            ) {
+              throw conflict('The booking changed, please reload', 'conflict');
+            }
+            await writeNights(moved, moved.checkInDate, moved.checkOutDate, session);
           }
           const checkedIn = await transition({
             model: Booking,

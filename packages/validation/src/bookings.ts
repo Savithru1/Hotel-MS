@@ -4,7 +4,10 @@ import { emailSchema, objectIdSchema, paginationSchema, shortText } from './comm
 import { phoneSchema } from './phone';
 import { dateOnlySchema } from './property';
 
-const stayDates = (value: { checkInDate: string; checkOutDate: string }, context: z.RefinementCtx) => {
+const stayDates = (
+  value: { checkInDate: string; checkOutDate: string },
+  context: z.RefinementCtx,
+) => {
   const nights = (Date.parse(value.checkOutDate) - Date.parse(value.checkInDate)) / 86_400_000;
   if (!(nights >= 1)) {
     context.addIssue({

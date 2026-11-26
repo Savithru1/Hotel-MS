@@ -333,8 +333,8 @@ describe('room status rules', () => {
   it('refuses a move the table does not allow with 409', async () => {
     const frontDesk = await as(a, 'front_desk');
     const id = await freshRoom();
-    await runWithTenant(a.id, () => Room.updateOne({ _id: id }, { status: 'occupied' }));
-    const res = await frontDesk.post(`/api/v1/rooms/${id}/status`, { status: 'available' });
+    await runWithTenant(a.id, () => Room.updateOne({ _id: id }, { status: 'reserved' }));
+    const res = await frontDesk.post(`/api/v1/rooms/${id}/status`, { status: 'cleaning' });
     expect(res.status).toBe(409);
     expect(res.body.error.code).toBe('bad_transition');
   });

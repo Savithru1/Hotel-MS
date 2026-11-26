@@ -3,7 +3,13 @@ import { changePasswordSchema, passwordSchema, staffLoginSchema } from './auth';
 import { paginationSchema } from './common';
 import { createGuestSchema } from './guests';
 import { normalizePhone, phoneSchema } from './phone';
-import { gstRuleSetSchema, gstinSchema, timeOfDaySchema, timezoneSchema } from './property';
+import {
+  dateOnlySchema,
+  gstRuleSetSchema,
+  gstinSchema,
+  timeOfDaySchema,
+  timezoneSchema,
+} from './property';
 import {
   createRoomTypeSchema,
   ratePaiseSchema,
@@ -139,6 +145,15 @@ describe('property, room and guest schemas', () => {
   it('accepts a real GSTIN and uppercases it', () => {
     expect(gstinSchema.parse('27abcde1234f1z5')).toBe('27ABCDE1234F1Z5');
     expect(gstinSchema.safeParse('27ABCDE1234F1Z').success).toBe(false);
+  });
+
+  it('rejects dates that only exist after rolling over (31 February)', () => {
+    for (const bad of ['2026-02-31', '2026-04-31', '2027-02-29', '2026-13-01']) {
+      expect(dateOnlySchema.safeParse(bad).success, bad).toBe(false);
+    }
+    for (const good of ['2026-02-28', '2028-02-29', '2026-12-31']) {
+      expect(dateOnlySchema.safeParse(good).success, good).toBe(true);
+    }
   });
 
   it('checks timezones and times', () => {

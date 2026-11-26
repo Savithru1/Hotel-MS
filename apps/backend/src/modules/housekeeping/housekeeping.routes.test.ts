@@ -241,7 +241,11 @@ describe('working a task: New -> In Progress -> Completed', () => {
         housekeeper.post(`/api/v1/housekeeping/${task.id}/start`),
         second.client.post(`/api/v1/housekeeping/${task.id}/start`),
       ]);
-      expect([r1.status, r2.status].sort()).toEqual([200, 409]);
+      // Exactly one wins. The other is told 409 (it lost the race) or 403 (it arrived just after
+      // the winner had claimed the task), depending on timing.
+      const statuses = [r1.status, r2.status];
+      expect(statuses.filter((status) => status === 200)).toHaveLength(1);
+      expect(statuses.filter((status) => status === 409 || status === 403)).toHaveLength(1);
       const winner =
         r1.status === 200 ? a.staff.housekeeping?.id.toHexString() : second.id.toHexString();
       const stored = await runWithTenant(a.id, () =>
