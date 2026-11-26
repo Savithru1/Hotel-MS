@@ -7,3 +7,4 @@ export * from './rooms';
 export * from './guests';
 export * from './bookings';
 export * from './operations';
+export * from './food';

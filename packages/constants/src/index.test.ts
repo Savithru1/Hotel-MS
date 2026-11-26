@@ -7,6 +7,13 @@ import {
   MAINTENANCE_TRANSITIONS,
   BOOKING_STATUSES,
   BOOKING_TRANSITIONS,
+  FOOD_ORDER_OPEN_STATUSES,
+  FOOD_ORDER_STATUSES,
+  FOOD_ORDER_TRANSITIONS,
+  LATE_ORDER_MINUTES,
+  MAX_LINE_QUANTITY,
+  MAX_MENU_PRICE_PAISE,
+  MENU_IMAGE_TYPES,
   NIGHT_HOLDING_STATUSES,
   MANUAL_ROOM_STATUSES,
   ROOM_STATUS_TRANSITIONS,
@@ -113,6 +120,49 @@ describe('booking workflow', () => {
 
   it('cannot go straight from pending to checked in', () => {
     expect(BOOKING_TRANSITIONS.pending).not.toContain('checked_in');
+  });
+});
+
+describe('food order workflow', () => {
+  it('moves received -> preparing -> ready -> delivered, one step at a time', () => {
+    expect(FOOD_ORDER_TRANSITIONS.received).toContain('preparing');
+    expect(FOOD_ORDER_TRANSITIONS.preparing).toEqual(['ready']);
+    expect(FOOD_ORDER_TRANSITIONS.ready).toEqual(['delivered']);
+    expect(FOOD_ORDER_TRANSITIONS.received).not.toContain('delivered');
+    expect(FOOD_ORDER_TRANSITIONS.received).not.toContain('ready');
+  });
+
+  it('only allows cancelling before preparation starts', () => {
+    expect(FOOD_ORDER_TRANSITIONS.received).toContain('cancelled');
+    expect(FOOD_ORDER_TRANSITIONS.preparing).not.toContain('cancelled');
+    expect(FOOD_ORDER_TRANSITIONS.ready).not.toContain('cancelled');
+  });
+
+  it('ends in delivered or cancelled with no way back', () => {
+    expect(FOOD_ORDER_TRANSITIONS.delivered).toEqual([]);
+    expect(FOOD_ORDER_TRANSITIONS.cancelled).toEqual([]);
+    const terminal = FOOD_ORDER_STATUSES.filter((s) => FOOD_ORDER_TRANSITIONS[s].length === 0);
+    expect(terminal.sort()).toEqual(['cancelled', 'delivered']);
+  });
+
+  it('has a row for every status and only points at real statuses', () => {
+    for (const status of FOOD_ORDER_STATUSES) {
+      expect(FOOD_ORDER_TRANSITIONS[status]).toBeDefined();
+      for (const next of FOOD_ORDER_TRANSITIONS[status])
+        expect(FOOD_ORDER_STATUSES).toContain(next);
+    }
+  });
+
+  it('counts received, preparing and ready as open', () => {
+    expect([...FOOD_ORDER_OPEN_STATUSES]).toEqual(['received', 'preparing', 'ready']);
+  });
+
+  it('has sane limits for late orders, prices, quantities and images', () => {
+    expect(LATE_ORDER_MINUTES).toBeGreaterThan(0);
+    expect(Number.isInteger(MAX_MENU_PRICE_PAISE)).toBe(true);
+    expect(MAX_LINE_QUANTITY).toBeGreaterThan(0);
+    // Only raster formats a browser shows safely. SVG can carry scripts, so it is not listed.
+    expect([...MENU_IMAGE_TYPES].sort()).toEqual(['image/jpeg', 'image/png', 'image/webp']);
   });
 });
 

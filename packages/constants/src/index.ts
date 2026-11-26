@@ -190,3 +190,47 @@ export type MaintenancePriority = (typeof MAINTENANCE_PRIORITIES)[number];
 
 export const REQUEST_PRIORITIES = ['normal', 'urgent'] as const;
 export type RequestPriority = (typeof REQUEST_PRIORITIES)[number];
+
+export const FOOD_ORDER_STATUSES = [
+  'received',
+  'preparing',
+  'ready',
+  'delivered',
+  'cancelled',
+] as const;
+export type FoodOrderStatus = (typeof FOOD_ORDER_STATUSES)[number];
+
+/**
+ * Received -> Preparing -> Ready to Serve -> Delivered. An order can only be cancelled while it
+ * is still Received: once the kitchen has started, the food is made and has to be dealt with.
+ */
+export const FOOD_ORDER_TRANSITIONS: Readonly<Record<FoodOrderStatus, readonly FoodOrderStatus[]>> =
+  {
+    received: ['preparing', 'cancelled'],
+    preparing: ['ready'],
+    ready: ['delivered'],
+    delivered: [],
+    cancelled: [],
+  };
+
+/** Orders the kitchen still has to deal with. */
+export const FOOD_ORDER_OPEN_STATUSES: readonly FoodOrderStatus[] = [
+  'received',
+  'preparing',
+  'ready',
+];
+
+/** An open order older than this is shown as late on the kitchen screen. */
+export const LATE_ORDER_MINUTES = 20;
+
+/** The dearest single menu item or option extra: Rs 10,000. A guard against a typo in the price. */
+export const MAX_MENU_PRICE_PAISE = 1_000_000;
+export const MAX_OPTION_GROUPS = 10;
+export const MAX_CHOICES_PER_GROUP = 20;
+export const MAX_ORDER_LINES = 30;
+export const MAX_LINE_QUANTITY = 20;
+
+/** Only raster formats browsers show safely. SVG can carry scripts, so it is not accepted. */
+export const MENU_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'] as const;
+export type MenuImageType = (typeof MENU_IMAGE_TYPES)[number];
+export const MAX_MENU_IMAGE_BYTES = 2 * 1024 * 1024;
