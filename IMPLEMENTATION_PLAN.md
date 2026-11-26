@@ -1,6 +1,6 @@
 # Hospitality Platform: Implementation Plan
 
-Status: **plan only, no code written.** Revised after the owner's answers (see section 8 for the locked decisions).
+Status: **Phase 1 is being built; P1.1 to P1.8 are done (see `PROGRESS.md` for the live state).** Revised after the owner's answers (see section 8 for the locked decisions).
 
 **Live progress is tracked in `PROGRESS.md`** (checklist, resume point, session log). Every Claude session follows it via `CLAUDE.md`. This plan document describes *what* to build; `PROGRESS.md` records *how far we are*.
 
