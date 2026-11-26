@@ -39,3 +39,57 @@ export const errorResponseSchema = z
     requestId: z.string().optional(),
   })
   .openapi('ErrorResponse');
+
+registry.registerComponent('securitySchemes', 'bearerAuth', {
+  type: 'http',
+  scheme: 'bearer',
+  bearerFormat: 'JWT',
+});
+
+const successEnvelopeSchema = z
+  .object({ success: z.literal(true), data: z.unknown() })
+  .openapi('SuccessResponse');
+
+export interface RouteDoc {
+  method: 'get' | 'post' | 'patch' | 'put' | 'delete';
+  /** Express-style path with `:id`; it is converted to the OpenAPI `{id}` form. */
+  path: string;
+  tag: string;
+  summary: string;
+  /** Needs a signed-in staff member. */
+  secured?: boolean;
+  body?: z.ZodObject;
+  query?: z.ZodObject;
+  params?: z.ZodObject;
+  /** Roles allowed, shown in the description. Empty means any signed-in staff. */
+  roles?: readonly string[];
+}
+
+/** Registers one route in the generated API docs, next to the route's own definition. */
+export function documentRoute(route: RouteDoc): void {
+  const rolesNote =
+    route.roles && route.roles.length > 0 ? ` Allowed roles: ${route.roles.join(', ')}.` : '';
+  registry.registerPath({
+    method: route.method,
+    path: `/api/v1${route.path.replace(/:(\w+)/g, '{$1}')}`,
+    tags: [route.tag],
+    summary: route.summary,
+    description: `${route.summary}.${rolesNote}`,
+    ...(route.secured ? { security: [{ bearerAuth: [] }] } : {}),
+    request: {
+      ...(route.params ? { params: route.params } : {}),
+      ...(route.query ? { query: route.query } : {}),
+      ...(route.body ? { body: { content: { 'application/json': { schema: route.body } } } } : {}),
+    },
+    responses: {
+      200: {
+        description: 'Success',
+        content: { 'application/json': { schema: successEnvelopeSchema } },
+      },
+      default: {
+        description: 'Error',
+        content: { 'application/json': { schema: errorResponseSchema } },
+      },
+    },
+  });
+}

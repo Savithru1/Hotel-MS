@@ -10,7 +10,7 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       include: ['src/**/*.ts'],
-      exclude: ['src/**/*.test.ts', 'src/server.ts', 'src/index.ts'],
+      exclude: ['src/**/*.test.ts', 'src/server.ts', 'src/index.ts', 'src/modules/seed/seed-cli.ts'],
       reporter: ['text-summary', 'text'],
       thresholds: { lines: 80, functions: 80, branches: 75, statements: 80 },
     },

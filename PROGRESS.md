@@ -12,7 +12,7 @@ Legend: `[x]` done and verified, `[ ]` not done. A task being worked on right no
 
 - **Last updated:** 2026-11-25
 - **Current phase / sub-phase:** Phase 1, **P1.2 Backend core is DONE**; **P1.3 Authentication and staff access is next** (not started). Owner said **do NOT push anything yet**.
-- **Currently in progress:** nothing. P1.2 is finished and verified.
+- **Currently in progress:** owner said "start P1.3 to P1.7, do not push". Working through P1.3 (auth) first, then P1.4, P1.5, P1.6, P1.7 in order. Nothing is pushed.
 - **Next action:** start **P1.3 Authentication and staff access** when the owner says go. Run `pnpm install`; `pnpm db:up` is only needed to run the real server (tests use their own in-memory database). Docker Desktop must be running for `db:up`.
 - **Blockers / open questions for the owner:** none for P1.1 or P1.2. Open items are in section "Open items" at the bottom.
 - **Git / push status:** a remote now exists: `origin` -> `https://github.com/Savithru1/Hotel-MS.git` (it was NOT added by Claude; it appeared between P1.1 and the end of P1.2, and `origin/main` already contained the P1.1 commit, pushed by the owner or another process). **The owner said "do not push anything yet", so the P1.2 commit and everything after it are committed locally only (`main` is ahead of `origin/main`).** Do not push until the owner says to. Once they do, push `main`, then update this line.
@@ -78,7 +78,7 @@ Sub-phases are in dependency order. P1.7, P1.8 and P1.9 may be done in any order
 - [x] Tests: tenant isolation (find/update/delete/count/aggregate/replace/upsert/bulk), state machine incl. 15 racing rounds, config fail-fast, errors, validation, rate limit, CORS, docs, audit. 153 backend tests, 95%+ line coverage.
 - [x] **Done when:** a dummy tenant-scoped model proves isolation in tests (yes), `/health` and `/docs` respond (yes, also checked against the real built server and the Docker MongoDB)
 
-### P1.3 Authentication and staff access (4 days)
+### P1.3 Authentication and staff access (4 days) (IN PROGRESS)
 
 - [ ] Staff login (bcrypt), short-lived access token, hashed refresh token in `refresh_tokens` with TTL, rotation, logout/revoke
 - [ ] HTTP test helper that acts as a given user (moved from P1.2) and a two-property seed with real `Property` documents (the `properties` model is created here or in P1.5, whichever comes first)

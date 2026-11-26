@@ -44,6 +44,10 @@ const schema = z
     JWT_REFRESH_SECRET: secret,
     CORS_ORIGINS: corsOrigins,
     TRUST_PROXY: z.coerce.number().int().min(0).max(10).default(0),
+    /** bcrypt work factor. 12 is slow enough to resist guessing; tests use a low value. */
+    BCRYPT_COST: z.coerce.number().int().min(4).max(15).default(12),
+    ACCESS_TOKEN_TTL_SECONDS: z.coerce.number().int().min(60).max(3600).default(900),
+    REFRESH_TOKEN_TTL_DAYS: z.coerce.number().int().min(1).max(90).default(14),
     ENABLE_DOCS: z.enum(['true', 'false']).optional(),
   })
   .superRefine((env, context) => {

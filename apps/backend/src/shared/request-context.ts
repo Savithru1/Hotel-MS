@@ -67,6 +67,17 @@ export function runWithTenant<T>(propertyId: Types.ObjectId, fn: () => T): T {
   return runWithContext(next, fn);
 }
 
+/** Runs `fn` as the given property with `principal` recorded as the actor (for audit entries). */
+export function runWithPrincipal<T>(
+  principal: Principal,
+  propertyId: Types.ObjectId,
+  fn: () => T,
+): T {
+  const next: RequestContext = { ...getContext(), propertyId, principal };
+  delete next.platform;
+  return runWithContext(next, fn);
+}
+
 /**
  * Runs `fn` with access to every property. Use only for seeding, background jobs and similar
  * code that is not acting for one property. Searching the code base for this name lists every

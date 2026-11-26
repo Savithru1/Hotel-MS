@@ -30,6 +30,18 @@ describe('parseEnv', () => {
     expect(env.CORS_ORIGINS).toEqual(['http://localhost:5173', 'http://localhost:5174']);
   });
 
+  it('has safe defaults for the auth settings', () => {
+    const env = parseEnv(valid);
+    expect(env.BCRYPT_COST).toBe(12);
+    expect(env.ACCESS_TOKEN_TTL_SECONDS).toBe(900);
+    expect(env.REFRESH_TOKEN_TTL_DAYS).toBe(14);
+  });
+
+  it('rejects a bcrypt cost that is too weak or too slow', () => {
+    expect(() => parseEnv({ ...valid, BCRYPT_COST: '3' })).toThrow(/BCRYPT_COST/);
+    expect(() => parseEnv({ ...valid, BCRYPT_COST: '16' })).toThrow(/BCRYPT_COST/);
+  });
+
   it('coerces PORT and TRUST_PROXY from strings', () => {
     const env = parseEnv({ ...valid, PORT: '8080', TRUST_PROXY: '1' });
     expect(env.PORT).toBe(8080);
