@@ -26,6 +26,18 @@ import {
   FOOD_ORDER_STATUSES,
   FOOD_ORDER_TRANSITIONS,
   LATE_ORDER_MINUTES,
+  JOB_BACKOFF_BASE_MS,
+  JOB_BACKOFF_MAX_MS,
+  JOB_LEASE_MS,
+  JOB_MAX_ATTEMPTS,
+  JOB_STATUSES,
+  JOB_TYPES,
+  MAX_STATS_RANGE_DAYS,
+  NOTIFICATION_READ_RETENTION_DAYS,
+  NOTIFICATION_LINK_KINDS,
+  NOTIFICATION_TYPES,
+  NOTIFICATION_UNREAD_RETENTION_DAYS,
+  SLA_MINUTES,
   MAX_LINE_QUANTITY,
   MAX_MENU_PRICE_PAISE,
   MENU_IMAGE_TYPES,
@@ -270,5 +282,55 @@ describe('housekeeping and maintenance workflows', () => {
   it('has a row for every status', () => {
     for (const s of HOUSEKEEPING_STATUSES) expect(HOUSEKEEPING_TRANSITIONS[s]).toBeDefined();
     for (const s of MAINTENANCE_STATUSES) expect(MAINTENANCE_TRANSITIONS[s]).toBeDefined();
+  });
+});
+
+describe('notifications, background jobs and SLA constants', () => {
+  it('lists the notification types with no duplicates', () => {
+    expect([...NOTIFICATION_TYPES].sort()).toEqual(
+      ['escalation', 'job_failed', 'new_assignment', 'sla_breach', 'urgent_issue'].sort(),
+    );
+    expect(new Set(NOTIFICATION_TYPES).size).toBe(NOTIFICATION_TYPES.length);
+  });
+
+  it('lists what a notification can link to', () => {
+    expect([...NOTIFICATION_LINK_KINDS]).toEqual([
+      'housekeeping',
+      'maintenance',
+      'food_order',
+      'job',
+    ]);
+  });
+
+  it('lists the job types and statuses', () => {
+    expect([...JOB_TYPES].sort()).toEqual(
+      ['billing.sync_open', 'notifications.cleanup', 'sla.scan'].sort(),
+    );
+    expect([...JOB_STATUSES]).toEqual(['pending', 'running', 'done', 'failed']);
+  });
+
+  it('gives every priority an SLA, with urgent work due sooner than normal work', () => {
+    expect(SLA_MINUTES.housekeeping).toEqual({ normal: 30, urgent: 15 });
+    expect(SLA_MINUTES.maintenance).toEqual({ low: 240, medium: 120, high: 60, urgent: 30 });
+    expect(SLA_MINUTES.food).toBe(LATE_ORDER_MINUTES);
+    expect(SLA_MINUTES.housekeeping.urgent).toBeLessThan(SLA_MINUTES.housekeeping.normal);
+    const m = SLA_MINUTES.maintenance;
+    expect(m.urgent).toBeLessThan(m.high);
+    expect(m.high).toBeLessThan(m.medium);
+    expect(m.medium).toBeLessThan(m.low);
+  });
+
+  it('keeps retention, range and retry limits as sane whole numbers', () => {
+    expect(NOTIFICATION_READ_RETENTION_DAYS).toBe(30);
+    expect(NOTIFICATION_UNREAD_RETENTION_DAYS).toBe(90);
+    expect(NOTIFICATION_UNREAD_RETENTION_DAYS).toBeGreaterThan(NOTIFICATION_READ_RETENTION_DAYS);
+    expect(MAX_STATS_RANGE_DAYS).toBe(92);
+    expect(JOB_MAX_ATTEMPTS).toBe(5);
+    expect(JOB_LEASE_MS).toBe(60_000);
+    expect(JOB_BACKOFF_BASE_MS).toBe(30_000);
+    expect(JOB_BACKOFF_MAX_MS).toBe(30 * 60_000);
+    for (const n of [JOB_MAX_ATTEMPTS, JOB_LEASE_MS, JOB_BACKOFF_BASE_MS, JOB_BACKOFF_MAX_MS]) {
+      expect(Number.isInteger(n)).toBe(true);
+    }
   });
 });

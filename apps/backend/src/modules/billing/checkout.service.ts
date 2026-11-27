@@ -183,6 +183,8 @@ export function createCheckOutService(
             status: task.status,
             change: 'created',
             escalated: false,
+            // A cleaning task made at check-out starts unassigned.
+            assignedTo: null,
           },
         });
       }

@@ -51,6 +51,10 @@ const schema = z
     /** `mongo` is only needed once a second backend instance runs. */
     SOCKET_ADAPTER: z.enum(['memory', 'mongo']).default('memory'),
     ENABLE_DOCS: z.enum(['true', 'false']).optional(),
+    /** Background jobs (SLA scan, cleanup). On unless this is a test run; override with true/false. */
+    JOBS_ENABLED: z.enum(['true', 'false']).optional(),
+    /** How often the worker looks for due jobs, in milliseconds. */
+    JOB_POLL_MS: z.coerce.number().int().min(100).max(60_000).default(5000),
   })
   .superRefine((env, context) => {
     if (env.JWT_ACCESS_SECRET === env.JWT_REFRESH_SECRET) {
@@ -65,6 +69,7 @@ const schema = z
     ...env,
     // API docs are on while developing and off in production unless explicitly enabled.
     ENABLE_DOCS: env.ENABLE_DOCS ? env.ENABLE_DOCS === 'true' : env.NODE_ENV !== 'production',
+    JOBS_ENABLED: env.JOBS_ENABLED ? env.JOBS_ENABLED === 'true' : env.NODE_ENV !== 'test',
   }));
 
 export type Env = z.output<typeof schema>;

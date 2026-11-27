@@ -39,6 +39,8 @@ export interface MaintenanceIssueDocument {
   resolutionNote: string | null;
   reportedBy: string | null;
   resolvedAt: Date | null;
+  /** When managers were reminded that this took too long. Set once; claimed atomically. */
+  slaRemindedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -60,6 +62,7 @@ const maintenanceIssueSchema = new Schema<MaintenanceIssueDocument>(
     resolutionNote: { type: String, default: null },
     reportedBy: { type: String, default: null },
     resolvedAt: { type: Date, default: null },
+    slaRemindedAt: { type: Date, default: null },
   },
   { timestamps: true },
 );
@@ -67,6 +70,7 @@ const maintenanceIssueSchema = new Schema<MaintenanceIssueDocument>(
 maintenanceIssueSchema.plugin(tenantPlugin);
 maintenanceIssueSchema.index({ propertyId: 1, status: 1, priorityRank: -1, createdAt: 1 });
 maintenanceIssueSchema.index({ propertyId: 1, roomId: 1, status: 1 });
+maintenanceIssueSchema.index({ propertyId: 1, status: 1, slaRemindedAt: 1, createdAt: 1 });
 maintenanceIssueSchema.index({ propertyId: 1, assignedTo: 1, status: 1 });
 
 export const MaintenanceIssue =

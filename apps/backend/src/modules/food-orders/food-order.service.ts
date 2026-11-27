@@ -212,6 +212,7 @@ export function createFoodOrderService(bus: EventBus = eventBus): FoodOrderServi
         readyAt: null,
         deliveredAt: null,
         cancelledAt: null,
+        slaRemindedAt: null,
       });
 
       await audit('created', order, { lines: items.length });

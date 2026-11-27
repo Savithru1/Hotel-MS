@@ -119,6 +119,7 @@ export function createMaintenanceService(
         change,
         escalated: issue.escalated,
         priority: issue.priority,
+        assignedTo: issue.assignedTo ? issue.assignedTo.toHexString() : null,
       },
     });
   }

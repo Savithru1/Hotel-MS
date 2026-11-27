@@ -19,6 +19,24 @@ function messageOf(raw: Record<string, string | undefined>): string {
 }
 
 describe('parseEnv', () => {
+  it('runs background jobs by default everywhere except tests, and polls every 5 seconds', () => {
+    expect(parseEnv(valid).JOBS_ENABLED).toBe(false);
+    expect(parseEnv({ ...valid, NODE_ENV: 'development' }).JOBS_ENABLED).toBe(true);
+    expect(parseEnv({ ...valid, NODE_ENV: 'production' }).JOBS_ENABLED).toBe(true);
+    expect(parseEnv(valid).JOB_POLL_MS).toBe(5000);
+  });
+
+  it('lets JOBS_ENABLED and JOB_POLL_MS be set, and refuses nonsense', () => {
+    expect(parseEnv({ ...valid, JOBS_ENABLED: 'true' }).JOBS_ENABLED).toBe(true);
+    expect(parseEnv({ ...valid, NODE_ENV: 'production', JOBS_ENABLED: 'false' }).JOBS_ENABLED).toBe(
+      false,
+    );
+    expect(parseEnv({ ...valid, JOB_POLL_MS: '250' }).JOB_POLL_MS).toBe(250);
+    expect(() => parseEnv({ ...valid, JOBS_ENABLED: 'yes' })).toThrow(/JOBS_ENABLED/);
+    expect(() => parseEnv({ ...valid, JOB_POLL_MS: '10' })).toThrow(/JOB_POLL_MS/);
+    expect(() => parseEnv({ ...valid, JOB_POLL_MS: '600000' })).toThrow(/JOB_POLL_MS/);
+  });
+
   it('returns typed values and sensible defaults for a valid environment', () => {
     const env = parseEnv(valid);
 

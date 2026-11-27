@@ -55,6 +55,8 @@ export interface FoodOrderDocument {
   readyAt: Date | null;
   deliveredAt: Date | null;
   cancelledAt: Date | null;
+  /** When managers were reminded that this took too long. Set once; claimed atomically. */
+  slaRemindedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -104,6 +106,7 @@ const foodOrderSchema = new Schema<FoodOrderDocument>(
     readyAt: { type: Date, default: null },
     deliveredAt: { type: Date, default: null },
     cancelledAt: { type: Date, default: null },
+    slaRemindedAt: { type: Date, default: null },
   },
   { timestamps: true },
 );
@@ -114,6 +117,7 @@ foodOrderSchema.index({ propertyId: 1, status: 1, createdAt: 1 });
 foodOrderSchema.index({ propertyId: 1, status: 1, deliveredAt: -1 });
 foodOrderSchema.index({ propertyId: 1, bookingId: 1, createdAt: 1 });
 foodOrderSchema.index({ propertyId: 1, roomId: 1, status: 1 });
+foodOrderSchema.index({ propertyId: 1, status: 1, slaRemindedAt: 1, createdAt: 1 });
 
 export const FoodOrder =
   (mongoose.models.FoodOrder as mongoose.Model<FoodOrderDocument> | undefined) ??

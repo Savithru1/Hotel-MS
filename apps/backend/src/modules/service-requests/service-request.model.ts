@@ -40,6 +40,8 @@ export interface ServiceRequestDocument {
   source: 'front_desk' | 'housekeeping' | 'guest' | 'system';
   createdBy: string | null;
   completedAt: Date | null;
+  /** When managers were reminded that this took too long. Set once; claimed atomically. */
+  slaRemindedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -69,6 +71,7 @@ const serviceRequestSchema = new Schema<ServiceRequestDocument>(
     },
     createdBy: { type: String, default: null },
     completedAt: { type: Date, default: null },
+    slaRemindedAt: { type: Date, default: null },
   },
   { timestamps: true },
 );
@@ -76,6 +79,7 @@ const serviceRequestSchema = new Schema<ServiceRequestDocument>(
 serviceRequestSchema.plugin(tenantPlugin);
 serviceRequestSchema.index({ propertyId: 1, status: 1, priorityRank: -1, createdAt: 1 });
 serviceRequestSchema.index({ propertyId: 1, roomId: 1, status: 1 });
+serviceRequestSchema.index({ propertyId: 1, status: 1, slaRemindedAt: 1, createdAt: 1 });
 serviceRequestSchema.index({ propertyId: 1, assignedTo: 1, status: 1 });
 
 export const ServiceRequest =

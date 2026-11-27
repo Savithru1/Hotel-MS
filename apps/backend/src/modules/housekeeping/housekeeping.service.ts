@@ -8,7 +8,8 @@ import type { Types } from 'mongoose';
 import { recordAudit } from '../../shared/audit/audit';
 import { badRequest, conflict, forbidden, notFound } from '../../shared/errors';
 import { eventBus, type EventBus } from '../../shared/events/event-bus';
-import { transition } from '../../shared/state-machine';
+import { getContext } from '../../shared/request-context';
+import { transition, type HistoryEntry } from '../../shared/state-machine';
 import { inTransaction } from '../../shared/transaction';
 import type { AuthenticatedStaff } from '../auth/auth.types';
 import { Booking } from '../bookings/booking.model';
@@ -58,6 +59,21 @@ export interface HousekeepingService {
 }
 
 const OPEN: HousekeepingStatus[] = ['new', 'in_progress'];
+
+const isManager = (actor: AuthenticatedStaff): boolean =>
+  isManagementRole(actor.role) || actor.role === 'platform_admin';
+
+/** A history line for a hand-over: the status does not change, only the person. */
+function handOverEntry(status: HousekeepingStatus, name: string): HistoryEntry {
+  const by = getContext()?.principal;
+  return {
+    from: status,
+    to: status,
+    at: new Date(),
+    ...(by ? { by } : {}),
+    note: `Reassigned to ${name}`,
+  };
+}
 
 async function toDtos(requests: ServiceRequestDocument[]): Promise<HousekeepingRequestDto[]> {
   if (requests.length === 0) return [];
@@ -112,6 +128,7 @@ export function createHousekeepingService(
         status: request.status,
         change,
         escalated: request.escalated,
+        assignedTo: request.assignedTo ? request.assignedTo.toHexString() : null,
       },
     });
   }
@@ -218,22 +235,36 @@ export function createHousekeepingService(
     async assign(actor, id, staffId) {
       const person = await assertAssignable(staffId, 'housekeeping');
       const request = await load(id);
-      if (request.status !== 'new') {
+      const reassigning = request.status === 'in_progress';
+      if (request.status !== 'new' && !(reassigning && isManager(actor))) {
         throw conflict(
           'Only a task that has not started can be handed to someone',
           'bad_transition',
         );
       }
+      if (reassigning && request.assignedTo?.equals(person.id)) {
+        throw conflict('The task is already assigned to that person', 'bad_transition');
+      }
       // Both the status and the previous assignee are in the filter, so two managers assigning at
-      // once cannot both succeed.
+      // once cannot both succeed: the second one's filter no longer matches and it gets a 409.
       const updated = await ServiceRequest.findOneAndUpdate(
-        { _id: id, status: 'new', assignedTo: request.assignedTo },
-        { $set: { assignedTo: person.id } },
+        { _id: id, status: request.status, assignedTo: request.assignedTo },
+        {
+          $set: { assignedTo: person.id },
+          ...(reassigning
+            ? { $push: { history: handOverEntry(request.status, person.name) } }
+            : {}),
+        },
         { returnDocument: 'after' },
       ).lean();
       if (!updated) throw conflict('The task changed while you were assigning it', 'conflict');
-      await audit('assigned', updated, { assignedTo: staffId, by: actor.id.toHexString() });
-      await announce(updated, 'assigned');
+      const action = reassigning ? 'reassigned' : 'assigned';
+      await audit(action, updated, {
+        assignedTo: staffId,
+        by: actor.id.toHexString(),
+        ...(reassigning ? { previous: request.assignedTo?.toHexString() ?? null } : {}),
+      });
+      await announce(updated, action);
       return toDto(updated);
     },
 

@@ -37,3 +37,4 @@ export * from './operations';
 export * from './food';
 export * from './facilities';
 export * from './billing';
+export * from './manager';

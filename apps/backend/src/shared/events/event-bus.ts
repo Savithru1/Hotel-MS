@@ -1,4 +1,4 @@
-import type { Department } from '@hospitality/constants';
+import type { Department, NotificationLinkKind, NotificationType } from '@hospitality/constants';
 import type { Types } from 'mongoose';
 
 /**
@@ -15,6 +15,8 @@ export interface AppEvents {
     status: string;
     change: string;
     escalated: boolean;
+    /** Staff id of whoever the request is assigned to now, or null. */
+    assignedTo: string | null;
   };
   /** A maintenance issue was created, assigned, started, resolved or escalated. */
   'maintenance.changed': {
@@ -25,6 +27,8 @@ export interface AppEvents {
     change: string;
     escalated: boolean;
     priority: string;
+    /** Staff id of whoever the issue is assigned to now, or null. */
+    assignedTo: string | null;
   };
   /** A food order was placed, started, made ready, delivered or cancelled. */
   'food_order.changed': {
@@ -77,6 +81,11 @@ export interface AppEvents {
   };
   /** A room moved to a new status. Front desk, housekeeping and managers refetch the room board. */
   'room.status_changed': { roomId: string; roomNumber: string; status: string; previous: string };
+  /**
+   * A notification was stored for some staff members. Sent to exactly those people's own rooms;
+   * the client refetches its unread count, so the payload says only what kind it was.
+   */
+  'notification.created': { type: NotificationType; linkKind: NotificationLinkKind };
   /** A plain notice for connected staff. Used by tests and operational messages. */
   'system.notice': { message: string };
 }

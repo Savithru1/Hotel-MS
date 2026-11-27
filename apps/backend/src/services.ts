@@ -22,6 +22,10 @@ import {
   createMaintenanceService,
   type MaintenanceService,
 } from './modules/maintenance/maintenance.service';
+import {
+  createNotificationService,
+  type NotificationService,
+} from './modules/notifications/notification.service';
 import { createPropertyService, type PropertyService } from './modules/properties/property.service';
 import { createRoomService, type RoomService } from './modules/rooms/room.service';
 import { createStaffService, type StaffService } from './modules/staff/staff.service';
@@ -44,6 +48,7 @@ export interface Services {
   facilityBookings: FacilityBookingService;
   billing: BillingService;
   checkOut: CheckOutService;
+  notifications: NotificationService;
 }
 
 export function buildServices(env: Env): Services {
@@ -67,5 +72,6 @@ export function buildServices(env: Env): Services {
     facilityBookings: createFacilityBookingService(properties),
     billing,
     checkOut: createCheckOutService(properties, billing, rooms),
+    notifications: createNotificationService(),
   };
 }

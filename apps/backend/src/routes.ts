@@ -9,6 +9,7 @@ import { foodOrderRouter } from './modules/food-orders/food-order.routes';
 import { housekeepingRouter } from './modules/housekeeping/housekeeping.routes';
 import { maintenanceRouter } from './modules/maintenance/maintenance.routes';
 import { menuRouter } from './modules/menu/menu.routes';
+import { notificationRouter } from './modules/notifications/notification.routes';
 import { propertyRouter } from './modules/properties/property.routes';
 import { roomRouters } from './modules/rooms/room.routes';
 import { staffRouter } from './modules/staff/staff.routes';
@@ -38,6 +39,7 @@ export function buildApiRouter({ services, loginLimits }: ApiOptions): Router {
     facilityBookings,
     billing,
     checkOut,
+    notifications,
   } = services;
   const router = Router();
   router.use('/auth', authRouter(tokens, auth, loginLimits));
@@ -57,5 +59,6 @@ export function buildApiRouter({ services, loginLimits }: ApiOptions): Router {
   router.use('/facility-bookings', facilityBookingRouter(tokens, auth, facilityBookings));
   router.use('/bills', billingRouter(tokens, auth, billing));
   router.use('/payments', paymentsRouter(tokens, auth, billing));
+  router.use('/notifications', notificationRouter(tokens, auth, notifications));
   return router;
 }

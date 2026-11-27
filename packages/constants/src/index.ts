@@ -311,3 +311,57 @@ export const MAX_BILL_AMOUNT_PAISE = 100_000_000;
 export const MENU_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'] as const;
 export type MenuImageType = (typeof MENU_IMAGE_TYPES)[number];
 export const MAX_MENU_IMAGE_BYTES = 2 * 1024 * 1024;
+
+// Notifications, background jobs and service-level targets (P1.11) -------------------------
+
+/** What a notification is about. Titles and links are built by the code that raises it. */
+export const NOTIFICATION_TYPES = [
+  'escalation',
+  'new_assignment',
+  'urgent_issue',
+  'sla_breach',
+  'job_failed',
+] as const;
+export type NotificationType = (typeof NOTIFICATION_TYPES)[number];
+
+/** The kind of record a notification points at. Only a kind and an id are stored, never details. */
+export const NOTIFICATION_LINK_KINDS = [
+  'housekeeping',
+  'maintenance',
+  'food_order',
+  'job',
+] as const;
+export type NotificationLinkKind = (typeof NOTIFICATION_LINK_KINDS)[number];
+
+/** A read notification is removed this long after it was read. */
+export const NOTIFICATION_READ_RETENTION_DAYS = 30;
+/** An unread notification is removed by the cleanup job after this long. */
+export const NOTIFICATION_UNREAD_RETENTION_DAYS = 90;
+
+/** The kinds of background job the worker knows how to run. */
+export const JOB_TYPES = ['sla.scan', 'notifications.cleanup', 'billing.sync_open'] as const;
+export type JobType = (typeof JOB_TYPES)[number];
+
+export const JOB_STATUSES = ['pending', 'running', 'done', 'failed'] as const;
+export type JobStatus = (typeof JOB_STATUSES)[number];
+
+/** A job that fails this many times in a row is marked failed and managers are told. */
+export const JOB_MAX_ATTEMPTS = 5;
+/** How long a worker owns a job it has claimed. After this a crashed run can be picked up again. */
+export const JOB_LEASE_MS = 60_000;
+/** Retry delay is `JOB_BACKOFF_BASE_MS * 2^(attempt - 1)`, never more than `JOB_BACKOFF_MAX_MS`. */
+export const JOB_BACKOFF_BASE_MS = 30_000;
+export const JOB_BACKOFF_MAX_MS = 30 * 60_000;
+
+/**
+ * How long an open item may wait before managers are reminded, in minutes. These are starting
+ * values for the owner to confirm. Food reuses the "late order" limit the kitchen screen shows.
+ */
+export const SLA_MINUTES = {
+  housekeeping: { normal: 30, urgent: 15 },
+  maintenance: { low: 240, medium: 120, high: 60, urgent: 30 },
+  food: LATE_ORDER_MINUTES,
+} as const;
+
+/** The longest date range a statistics or audit request may cover, in days (inclusive). */
+export const MAX_STATS_RANGE_DAYS = 92;
