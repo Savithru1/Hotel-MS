@@ -8,6 +8,8 @@ import { facilityRouter } from './modules/facilities/facility.routes';
 import { foodOrderRouter } from './modules/food-orders/food-order.routes';
 import { housekeepingRouter } from './modules/housekeeping/housekeeping.routes';
 import { maintenanceRouter } from './modules/maintenance/maintenance.routes';
+import { auditRouter } from './modules/manager/audit.routes';
+import { managerRouter } from './modules/manager/manager.routes';
 import { menuRouter } from './modules/menu/menu.routes';
 import { notificationRouter } from './modules/notifications/notification.routes';
 import { propertyRouter } from './modules/properties/property.routes';
@@ -40,6 +42,8 @@ export function buildApiRouter({ services, loginLimits }: ApiOptions): Router {
     billing,
     checkOut,
     notifications,
+    manager,
+    audit,
   } = services;
   const router = Router();
   router.use('/auth', authRouter(tokens, auth, loginLimits));
@@ -60,5 +64,7 @@ export function buildApiRouter({ services, loginLimits }: ApiOptions): Router {
   router.use('/bills', billingRouter(tokens, auth, billing));
   router.use('/payments', paymentsRouter(tokens, auth, billing));
   router.use('/notifications', notificationRouter(tokens, auth, notifications));
+  router.use('/manager', managerRouter(tokens, auth, manager));
+  router.use('/audit-logs', auditRouter(tokens, auth, audit));
   return router;
 }

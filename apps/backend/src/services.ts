@@ -13,6 +13,8 @@ import {
   createFoodOrderService,
   type FoodOrderService,
 } from './modules/food-orders/food-order.service';
+import { createAuditService, type AuditService } from './modules/manager/audit.service';
+import { createManagerService, type ManagerService } from './modules/manager/manager.service';
 import { createMenuService, type MenuService } from './modules/menu/menu.service';
 import {
   createHousekeepingService,
@@ -49,6 +51,8 @@ export interface Services {
   billing: BillingService;
   checkOut: CheckOutService;
   notifications: NotificationService;
+  manager: ManagerService;
+  audit: AuditService;
 }
 
 export function buildServices(env: Env): Services {
@@ -73,5 +77,7 @@ export function buildServices(env: Env): Services {
     billing,
     checkOut: createCheckOutService(properties, billing, rooms),
     notifications: createNotificationService(),
+    manager: createManagerService(properties),
+    audit: createAuditService(properties),
   };
 }

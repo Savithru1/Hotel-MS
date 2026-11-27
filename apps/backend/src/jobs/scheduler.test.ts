@@ -42,7 +42,11 @@ describe('scheduler.ensure', () => {
 
     for (const property of [a, b]) {
       const jobs = await jobsOf(property);
-      expect(jobs.map((job) => job.type)).toEqual(['notifications.cleanup', 'sla.scan']);
+      expect(jobs.map((job) => job.type)).toEqual([
+        'billing.sync_open',
+        'notifications.cleanup',
+        'sla.scan',
+      ]);
       const scan = jobs.find((job) => job.type === 'sla.scan');
       expect(scan).toMatchObject({
         status: 'pending',
@@ -50,6 +54,12 @@ describe('scheduler.ensure', () => {
         recurring: { everyMs: 60_000 },
       });
       expect(scan?.runAt).toEqual(NOW);
+      expect(jobs.find((job) => job.type === 'billing.sync_open')).toMatchObject({
+        status: 'pending',
+        attempts: 0,
+        recurring: { everyMs: 15 * 60_000 },
+        dedupeKey: 'recurring:billing.sync_open',
+      });
       expect(jobs.find((job) => job.type === 'notifications.cleanup')?.recurring).toEqual({
         everyMs: 24 * 3_600_000,
       });
@@ -115,7 +125,7 @@ describe('scheduler.ensure', () => {
 });
 
 describe('scheduler and worker together', () => {
-  it('run the scan and the cleanup for each property, then schedule the next run', async () => {
+  it('run the scan, the cleanup and the bill sync for each property, then schedule the next run', async () => {
     await createScheduler({ clock, logger }).ensure();
     const ran: string[] = [];
     const worker = createWorker({
@@ -127,19 +137,24 @@ describe('scheduler and worker together', () => {
         'sla.scan': async (job) => void ran.push(`scan:${job.propertyId.toHexString()}`),
         'notifications.cleanup': async (job) =>
           void ran.push(`cleanup:${job.propertyId.toHexString()}`),
+        'billing.sync_open': async (job) => void ran.push(`sync:${job.propertyId.toHexString()}`),
       },
     });
-    expect(await worker.tick()).toBe(4);
+    expect(await worker.tick()).toBe(6);
     expect(ran.sort()).toEqual(
       [
         `scan:${a.id.toHexString()}`,
         `scan:${b.id.toHexString()}`,
         `cleanup:${a.id.toHexString()}`,
         `cleanup:${b.id.toHexString()}`,
+        `sync:${a.id.toHexString()}`,
+        `sync:${b.id.toHexString()}`,
       ].sort(),
     );
     const next = (await jobsOf(a)).find((job) => job.type === 'sla.scan');
     expect(next?.runAt.getTime()).toBe(NOW.getTime() + 60_000);
+    const sync = (await jobsOf(a)).find((job) => job.type === 'billing.sync_open');
+    expect(sync?.runAt.getTime()).toBe(NOW.getTime() + 15 * 60_000);
     expect(await worker.tick()).toBe(0);
   });
 });

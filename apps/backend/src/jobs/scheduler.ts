@@ -15,10 +15,11 @@ export interface RecurringSpec {
   everyMs: number;
 }
 
-/** The jobs every active property gets. `billing.sync_open` is added when its handler exists. */
+/** The jobs every active property gets. */
 export const RECURRING_JOBS: readonly RecurringSpec[] = [
   { type: 'sla.scan', everyMs: MINUTE_MS },
   { type: 'notifications.cleanup', everyMs: 24 * HOUR_MS },
+  { type: 'billing.sync_open', everyMs: 15 * MINUTE_MS },
 ];
 
 export interface SchedulerOptions {

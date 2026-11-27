@@ -66,6 +66,12 @@ export interface OccupancyDayDto {
   basis: 'actual' | 'on_the_books';
 }
 
+export interface OccupancyDto {
+  from: string;
+  to: string;
+  days: OccupancyDayDto[];
+}
+
 export interface RevenueAmountDto {
   taxablePaise: number;
   taxPaise: number;
@@ -95,7 +101,10 @@ export interface RevenueDto {
 }
 
 export interface ResponseTimeDto {
-  /** How many items the averages are based on. */
+  /**
+   * How many items were looked at: created in the range and not cancelled. An average is `null`
+   * when none of them has that figure (for example nothing has been started yet).
+   */
   n: number;
   /** Average seconds to first action, or `null` when there is no data (never 0). */
   firstActionSeconds: number | null;

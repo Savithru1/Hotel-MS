@@ -69,3 +69,8 @@ export const auditLogQuerySchema = paginationSchema
 
 export type StatsRangeQuery = z.output<typeof statsRangeQuerySchema>;
 export type AuditLogQuery = z.output<typeof auditLogQuerySchema>;
+
+/** `GET /manager/overview?date=`. A missing date means today in the property's timezone. */
+export const overviewQuerySchema = z.object({ date: dateOnlySchema.optional() });
+
+export type OverviewQuery = z.output<typeof overviewQuerySchema>;

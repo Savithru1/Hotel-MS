@@ -61,7 +61,18 @@ export interface ListBillsInput {
 
 export type { ListPaymentsInput } from './payment-ledger';
 
+/** What one pass of `syncOpenBills` did: bills brought up to date, and the bookings that failed. */
+export interface SyncOpenResult {
+  synced: number;
+  failures: { bookingId: string; error: unknown }[];
+}
+
 export interface BillingService extends PaymentLedger {
+  /**
+   * Opens the bill of every checked-in guest of the current property and posts what is missing.
+   * Safe to run again and again. A booking that fails is reported and the rest carry on.
+   */
+  syncOpenBills(): Promise<SyncOpenResult>;
   /** Opens the bill of a checked-in guest if there is none, brings it up to date, and returns it. */
   forBooking(bookingId: string): Promise<BillDto>;
   get(id: string): Promise<BillDto>;
@@ -498,6 +509,21 @@ export function createBillingService(properties: PropertyService): BillingServic
     openItemsProblem,
     unbilledItemCount,
     assemble,
+
+    async syncOpenBills() {
+      const bookings = await Booking.find({ status: 'checked_in' }).sort({ _id: 1 }).lean();
+      let synced = 0;
+      const failures: SyncOpenResult['failures'] = [];
+      for (const booking of bookings) {
+        try {
+          await syncCharges(await ensureBill(booking), booking);
+          synced += 1;
+        } catch (error) {
+          failures.push({ bookingId: booking._id.toHexString(), error });
+        }
+      }
+      return { synced, failures };
+    },
 
     async forBooking(bookingId) {
       const booking = await loadBooking(bookingId);

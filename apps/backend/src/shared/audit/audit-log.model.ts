@@ -37,6 +37,8 @@ const auditLogSchema = new Schema<AuditLogDocument>(
 auditLogSchema.index({ propertyId: 1, at: -1 });
 auditLogSchema.index({ propertyId: 1, 'target.type': 1, 'target.id': 1, at: -1 });
 auditLogSchema.index({ propertyId: 1, action: 1, at: -1 });
+// "What did this person do?", for the manager audit screen.
+auditLogSchema.index({ propertyId: 1, 'actor.id': 1, at: -1 });
 
 function refuse(): never {
   throw new AuditImmutableError();

@@ -2,6 +2,7 @@ import { createServer } from 'node:http';
 import { createApp } from './app';
 import { connectDatabase, disconnectDatabase } from './config/database';
 import { EnvValidationError, loadEnv } from './config/environment';
+import { createBillingSyncHandler } from './jobs/handlers/billing-sync';
 import { createNotificationCleanupHandler } from './jobs/handlers/notification-cleanup';
 import { createSlaScanHandler } from './jobs/handlers/sla-scan';
 import { createScheduler } from './jobs/scheduler';
@@ -54,6 +55,7 @@ async function main(): Promise<void> {
         clock: systemClock,
         notifications: services.notifications,
       }),
+      'billing.sync_open': createBillingSyncHandler({ billing: services.billing, logger }),
     },
   });
   const scheduler = createScheduler({ clock: systemClock, logger });

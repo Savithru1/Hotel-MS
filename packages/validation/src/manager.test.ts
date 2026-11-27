@@ -4,6 +4,7 @@ import {
   auditLogQuerySchema,
   listNotificationsQuerySchema,
   markReadParamsSchema,
+  overviewQuerySchema,
   statsRangeQuerySchema,
 } from './manager';
 
@@ -115,5 +116,20 @@ describe('auditLogQuerySchema', () => {
     expect(auditLogQuerySchema.safeParse({ action: '' }).success).toBe(false);
     expect(auditLogQuerySchema.safeParse({ action: 'x'.repeat(101) }).success).toBe(false);
     expect(auditLogQuerySchema.safeParse({ actorId: '' }).success).toBe(false);
+  });
+});
+
+describe('overviewQuerySchema', () => {
+  it('accepts no date (the service uses the property today) and a valid date', () => {
+    expect(overviewQuerySchema.parse({})).toEqual({});
+    expect(overviewQuerySchema.parse({ date: '2026-03-10' })).toEqual({ date: '2026-03-10' });
+  });
+
+  it('refuses malformed and impossible dates and drops unknown fields', () => {
+    expect(overviewQuerySchema.safeParse({ date: '10-03-2026' }).success).toBe(false);
+    expect(overviewQuerySchema.safeParse({ date: '2026-02-31' }).success).toBe(false);
+    expect(overviewQuerySchema.parse({ date: '2026-03-10', propertyId: 'x' })).toEqual({
+      date: '2026-03-10',
+    });
   });
 });
