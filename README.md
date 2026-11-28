@@ -55,13 +55,13 @@ flowchart TB
 
 ## 3. Why This Matters (Problems Solved)
 
-| Who | Current Problem | How Our Platform Solves It |
-| :--- | :--- | :--- |
-| **Hotel Owner** | Pays 15%–25% commission to third-party booking sites and pays for 4 separate software tools | One all-in-one platform + direct bookings directly from customers with much lower cost |
-| **Front Desk Staff** | Manual paperwork, double-booking errors, chasing housekeeping on phone calls | Live room status screen, automatic cleaning alerts on checkout, fast digital check-in |
-| **Kitchen Team** | Lost paper food orders, guests waiting too long, running out of ingredients unexpectedly | Live Kitchen Screen (KDS), automatic ingredient stock deduction, instant room-bill sync |
-| **Ground Staff** | Unclear daily duties, messy shift schedules on paper/WhatsApp | Clean mobile task list with shift schedules and clear completion tracking |
-| **Hotel Guest** | Waiting at reception, calling reception for towels/food, figuring out local sightseeing alone | Fast check-in, order anything from room QR code, live food tracking, and built-in Trip Planner |
+| Who                  | Current Problem                                                                               | How Our Platform Solves It                                                                     |
+| :------------------- | :-------------------------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------- |
+| **Hotel Owner**      | Pays 15%–25% commission to third-party booking sites and pays for 4 separate software tools   | One all-in-one platform + direct bookings directly from customers with much lower cost         |
+| **Front Desk Staff** | Manual paperwork, double-booking errors, chasing housekeeping on phone calls                  | Live room status screen, automatic cleaning alerts on checkout, fast digital check-in          |
+| **Kitchen Team**     | Lost paper food orders, guests waiting too long, running out of ingredients unexpectedly      | Live Kitchen Screen (KDS), automatic ingredient stock deduction, instant room-bill sync        |
+| **Ground Staff**     | Unclear daily duties, messy shift schedules on paper/WhatsApp                                 | Clean mobile task list with shift schedules and clear completion tracking                      |
+| **Hotel Guest**      | Waiting at reception, calling reception for towels/food, figuring out local sightseeing alone | Fast check-in, order anything from room QR code, live food tracking, and built-in Trip Planner |
 
 ---
 
@@ -94,10 +94,10 @@ flowchart LR
 
 Read each document below for a complete, plain-language explanation with step-by-step flowcharts:
 
-| Chapter | What It Covers | Link |
-| :--- | :--- | :--- |
-| **01 — Hotel Side** | Whole hotel management, Kitchen & pantry, Staff management, Owner reports | [docs/01-hotel-side-explained.md](docs/01-hotel-side-explained.md) |
-| **02 — Customer Side** | Search & booking, pre-check-in, room QR experience, checkout & reviews | [docs/02-customer-side-explained.md](docs/02-customer-side-explained.md) |
-| **03 — Future Add-Ons** | Trip Planner, nearby visiting places, partner marketplace & future plug-ins | [docs/03-future-addons-and-trip-planner.md](docs/03-future-addons-and-trip-planner.md) |
-| **04 — End-to-End Flows & Roadmap** | Complete guest-to-hotel story diagram, safety rules, phased roadmap & next questions | [docs/04-end-to-end-flows-and-roadmap.md](docs/04-end-to-end-flows-and-roadmap.md) |
+| Chapter                              | What It Covers                                                                            | Link                                                                                   |
+| :----------------------------------- | :---------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------- |
+| **01 — Hotel Side**                  | Whole hotel management, Kitchen & pantry, Staff management, Owner reports                 | [docs/01-hotel-side-explained.md](docs/01-hotel-side-explained.md)                     |
+| **02 — Customer Side**               | Search & booking, pre-check-in, room QR experience, checkout & reviews                    | [docs/02-customer-side-explained.md](docs/02-customer-side-explained.md)               |
+| **03 — Future Add-Ons**              | Trip Planner, nearby visiting places, partner marketplace & future plug-ins               | [docs/03-future-addons-and-trip-planner.md](docs/03-future-addons-and-trip-planner.md) |
+| **04 — End-to-End Flows & Roadmap**  | Complete guest-to-hotel story diagram, safety rules, phased roadmap & next questions      | [docs/04-end-to-end-flows-and-roadmap.md](docs/04-end-to-end-flows-and-roadmap.md)     |
 | **05 — MongoDB & Backend Structure** | Compulsory MongoDB setup, collections map, transactions, live Change Streams & GPS search | [docs/05-mongodb-architecture-explained.md](docs/05-mongodb-architecture-explained.md) |

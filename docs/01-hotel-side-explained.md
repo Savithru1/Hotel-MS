@@ -11,6 +11,7 @@ Instead of using separate apps for rooms, food, and staff, everything lives insi
 Think of this as the **control tower** of the hotel. It knows which rooms exist, which ones are clean or dirty, who is staying in which room, and how much money is owed.
 
 ### Key Features in Simple Words
+
 1. **Room & Floor Setup:** Organize the hotel by floors and room types (Standard, Deluxe, Suite), along with photos, bed types, and prices.
 2. **Live Room Status Board:** Reception can see every room in real time using clear color-coded states.
 3. **Reservations & Front Desk:** Manage online bookings, phone bookings, walk-in guests, stay extensions, early check-in, late check-out, and room upgrades.
@@ -54,6 +55,7 @@ flowchart TD
 Hotels lose huge amounts of money when food orders get misplaced, dishes take too long, or kitchen ingredients expire or go missing. This module connects **Orders -> Chefs -> Pantry Stock -> Guest Bill**.
 
 ### Key Features in Simple Words
+
 1. **Multiple Ways Orders Come In:**
    - A guest orders food from their phone inside the room (Room Service).
    - A waiter takes an order at a restaurant table using a tablet.
@@ -63,7 +65,7 @@ Hotels lose huge amounts of money when food orders get misplaced, dishes take to
    - Items automatically route to the right section: **Hot Kitchen** gets the curry, **Bakery** gets the dessert, and **Bar** gets the drinks.
    - Shows a timer for how long each order has been waiting and highlights **allergy warnings** (like "No Peanuts").
 3. **Smart Menu & Recipe Connection:**
-   - Every dish has a simple ingredient recipe saved behind it (for example: *1 Butter Chicken = 250g chicken + 50g butter + cream + spices*).
+   - Every dish has a simple ingredient recipe saved behind it (for example: _1 Butter Chicken = 250g chicken + 50g butter + cream + spices_).
    - Whenever a dish is ordered, the system **automatically subtracts those ingredients from the pantry stock**.
    - If the kitchen runs out of paneer, dishes using paneer can automatically show as **"Currently Unavailable"** on the guest menu so guests do not order something the kitchen cannot make.
 4. **Pantry, Vendors & Food Waste Control:**
@@ -94,6 +96,7 @@ flowchart LR
 A hotel runs smoothly only when every team member knows their shift, their exact permissions, and what task needs to happen next.
 
 ### Key Features in Simple Words
+
 1. **Role-Based Access (Everyone Sees Only What They Need):**
    - **Owner / Manager:** Sees money, profits, discounts, reports, and all staff.
    - **Front Desk:** Sees rooms, check-ins, check-outs, and guest bills (cannot delete financial records).
@@ -105,7 +108,7 @@ A hotel runs smoothly only when every team member knows their shift, their exact
    - Staff can request leaves or swap shifts with manager approval.
    - **Smart Busy-Day Tip:** When the booking calendar shows the hotel is 95% full next weekend, the system reminds the manager to schedule extra cleaners and kitchen helpers.
 3. **Live Task Checklist:**
-   - Every duty becomes a clear digital ticket with a time goal (example: *"Deliver 2 towels to Room 302 within 10 mins"* or *"Clean Room 108 before 1:00 PM"*).
+   - Every duty becomes a clear digital ticket with a time goal (example: _"Deliver 2 towels to Room 302 within 10 mins"_ or _"Clean Room 108 before 1:00 PM"_).
    - Managers can instantly see who finished what and which tasks are running late.
 4. **Salary & Performance Summary:**
    - Tracks total hours worked, overtime, tips collected, and average speed (like average room cleaning time) for easy monthly payroll calculation.
@@ -146,4 +149,4 @@ Beyond daily operations, an industry-level system helps owners grow profits and 
 - Every hotel's rooms, staff, dishes, pantry stock, and bills are isolated cleanly using its **`hotelId`** inside MongoDB.
 - **Dish recipes** are stored right inside each dish document in **`menu_items`**, so every food order instantly knows which ingredients to subtract from **`pantry_inventory`**.
 - **MongoDB Change Streams** push live updates the millisecond an order is placed or a room is checked out—so Kitchen Screens and Cleaning Staff phones update instantly without manual refreshing.
-- Security actions go into a permanent **`audit_logs`** collection for owner safety. *(See [05-mongodb-architecture-explained.md](05-mongodb-architecture-explained.md) for the full diagram.)*
+- Security actions go into a permanent **`audit_logs`** collection for owner safety. _(See [05-mongodb-architecture-explained.md](05-mongodb-architecture-explained.md) for the full diagram.)_

@@ -11,13 +11,14 @@ Our goal is to make the guest feel taken care of without needing to download hea
 This is how travelers find the hotel, compare rooms, and confirm their stay online.
 
 ### Key Features in Simple Words
+
 1. **Easy Search & Filters:**
    - Search by city/destination, check-in & check-out dates, number of adults/children, price range, and facilities (pool, parking, Wi-Fi, pet-friendly, breakfast included).
 2. **Clear Room Details:**
    - Real-time availability pulled directly from the Hotel Side (so if the last Deluxe Room just sold out, it disappears instantly—no false promises).
    - Honest photos, bed size, room size, view details, meal plans, and clear cancellation rules.
 3. **Helpful Add-Ons During Booking:**
-   - Before paying, guests can easily add extras: *Breakfast package, Airport pickup cab, Early check-in, Romantic room decoration, or Extra bed*.
+   - Before paying, guests can easily add extras: _Breakfast package, Airport pickup cab, Early check-in, Romantic room decoration, or Extra bed_.
 4. **Smooth Payments & Instant Confirmation:**
    - Supports cards, UPI/wallets, pay-partial-now or pay-at-hotel options (depending on hotel rules).
    - Immediately sends a clean digital booking confirmation and receipt via email/WhatsApp.
@@ -43,7 +44,7 @@ flowchart TD
 Instead of standing tired at the reception desk for 15 minutes filling out paper forms and handing over ID cards:
 
 1. **Upload ID Ahead of Time:** Guests can securely upload their passport/ID photo from home.
-2. **Share Arrival Time & Preferences:** Tell the hotel *"Landing at 11 AM, need extra pillows, vegetarian food preference"*.
+2. **Share Arrival Time & Preferences:** Tell the hotel _"Landing at 11 AM, need extra pillows, vegetarian food preference"_.
 3. **60-Second Arrival:** When the guest reaches the hotel, reception already has everything verified—they just hand over the room key and welcome them.
 
 ---
@@ -53,10 +54,11 @@ Instead of standing tired at the reception desk for 15 minutes filling out paper
 Once inside the room, the guest simply scans a **QR code on the room table** (or opens their booking link on their phone browser—**no app download needed**).
 
 ### What the Guest Can Do From Their Phone
+
 1. **Order Food to Room (Connected Straight to Kitchen):**
    - Browse live photos & prices (items that are out of stock are already hidden).
-   - Add special cooking notes (*"Make it less spicy"*).
-   - Track order live: *Order Received -> Chef Cooking -> On the Way to Room 204*.
+   - Add special cooking notes (_"Make it less spicy"_).
+   - Track order live: _Order Received -> Chef Cooking -> On the Way to Room 204_.
 2. **One-Tap Hotel Services:**
    - Request room cleaning now or set "Do Not Disturb".
    - Ask for fresh towels, water bottles, iron, or luggage help.
@@ -84,7 +86,7 @@ flowchart LR
 
 ## Stage 4: After the Stay (Reviews & Loyalty)
 
-1. **Honest Verified Reviews:** Only guests who actually stayed can leave ratings—broken down clearly into *Room Comfort, Cleanliness, Food Quality, and Staff Service*.
+1. **Honest Verified Reviews:** Only guests who actually stayed can leave ratings—broken down clearly into _Room Comfort, Cleanliness, Food Quality, and Staff Service_.
 2. **Instant Tax Invoices:** Easy download of GST/tax invoices for personal or business reimbursement.
 3. **Repeat Guest Rewards:** Guests earn loyalty points or special perks when booking directly through our platform again, reducing the hotel's dependence on high-commission third-party sites.
 
@@ -93,5 +95,5 @@ flowchart LR
 ## How MongoDB Powers the Customer Side Behind the Scenes
 
 - **Zero Double-Bookings:** During checkout, MongoDB uses an **atomic lock + Transaction** across the room calendar, booking record, and guest bill so two customers can never book the same last room at the same second.
-- **Live Room-Service Tracking:** When the chef taps *"Preparing"* or *"Ready"* on the Kitchen Screen, **MongoDB Change Streams** immediately send that live status straight to the guest's phone browser.
-- **One Clean Stay Bill:** Every meal or extra service ordered from the QR portal appends neatly into the guest's **`guest_bills`** document in MongoDB for an instant Express Check-Out. *(See [05-mongodb-architecture-explained.md](05-mongodb-architecture-explained.md) for full details.)*
+- **Live Room-Service Tracking:** When the chef taps _"Preparing"_ or _"Ready"_ on the Kitchen Screen, **MongoDB Change Streams** immediately send that live status straight to the guest's phone browser.
+- **One Clean Stay Bill:** Every meal or extra service ordered from the QR portal appends neatly into the guest's **`guest_bills`** document in MongoDB for an instant Express Check-Out. _(See [05-mongodb-architecture-explained.md](05-mongodb-architecture-explained.md) for full details.)_

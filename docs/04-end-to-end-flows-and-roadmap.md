@@ -56,7 +56,7 @@ To sell this to real hotels as a serious startup, four behind-the-scenes promise
 3. **Always Available & Backed Up (MongoDB Replica Sets):**
    - MongoDB keeps live backup server copies running continuously so Reception and Kitchen screens stay reliable, plus short offline queuing if hotel Wi-Fi flickers.
 4. **Honest Financial Trail (Permanent `audit_logs`):**
-   - Every room price edit, discount, cancelled kitchen item, and refund writes a permanent record in MongoDB's `audit_logs` collection showing *who changed it, when, and why*.
+   - Every room price edit, discount, cancelled kitchen item, and refund writes a permanent record in MongoDB's `audit_logs` collection showing _who changed it, when, and why_.
 
 ---
 
@@ -65,24 +65,27 @@ To sell this to real hotels as a serious startup, four behind-the-scenes promise
 Remember: right now we are **only exploring and shaping the idea**. When you eventually tell me it is time to build, here is the healthiest sequence so we never get overwhelmed:
 
 ### Phase 1: The Core Foundation (First Working Version)
+
 - **MongoDB Core Collections:** `hotels`, `users_staff`, `rooms`, `customers`, `bookings`, `guest_bills`, and `audit_logs`.
 - **Hotel Setup & Front Desk:** Owner/staff accounts, room types, pricing, taxes, live calendar, check-ins/check-outs, and basic bills.
 - **Customer Side:** Search hotel, pick rooms (protected by MongoDB booking transactions), pay securely, and get instant confirmation.
-- *Outcome:* A hotel can already accept direct bookings and manage rooms professionally.
+- _Outcome:_ A hotel can already accept direct bookings and manage rooms professionally.
 
 ### Phase 2: Full Daily Hotel Operations (Kitchen + Staff + Room Experience)
+
 - **MongoDB Operations Collections & Live Sync:** Add `menu_items`, `pantry_inventory`, `kitchen_orders`, and `staff_tasks` powered by **MongoDB Change Streams**.
 - **Kitchen Suite:** Restaurant & Room-service ordering, live Kitchen Display Screen, recipes, pantry stock deduction, and wastage tracking.
 - **Staff Suite:** Role permissions, shift schedules, attendance, and mobile task queue for housekeeping & repairs.
 - **Customer In-Stay:** Room QR portal for ordering food, tracking cooking progress live, requesting cleaning, viewing live bill, and express checkout.
-- *Outcome:* The entire hotel runs as one connected machine.
+- _Outcome:_ The entire hotel runs as one connected machine.
 
 ### Phase 3: Startup Growth & Differentiator (Trip Ecosystem + Scale)
+
 - **MongoDB Trip & Scale Power:** Add `trip_plans` using MongoDB **GPS (`2dsphere`) location search**, plus regional scaling across cities.
 - **Trip Planner & Nearby Places:** Automated itineraries and curated local visiting spots unlocked on booking.
 - **Local Partner Marketplace:** Bookable cabs, tours, and activities integrated into the trip plan.
 - **Industry Scale Tools:** Multi-branch chain dashboard, WhatsApp bot, Booking.com/Airbnb sync, and smart dynamic room pricing.
-- *Outcome:* A true standout startup product with multiple income streams.
+- _Outcome:_ A true standout startup product with multiple income streams.
 
 ---
 
