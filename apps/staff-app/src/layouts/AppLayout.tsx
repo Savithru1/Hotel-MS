@@ -1,10 +1,11 @@
 import { NavLink, Outlet } from 'react-router';
 import { useAuth, useStaff } from '../auth/AuthContext';
 import { NAV_ITEMS, navFor, type NavItem } from '../auth/permissions';
+import { NotificationBell } from '../components/NotificationBell';
 import { Button, words } from '../components/ui';
 import { useConnectionStatus, type ConnectionStatus } from '../realtime/RealtimeProvider';
 
-const GROUPS: NavItem['group'][] = ['Front desk', 'Operations', 'Setup'];
+const GROUPS: NavItem['group'][] = ['Manager', 'Front desk', 'Operations', 'Setup'];
 
 const STATUS_TEXT: Record<ConnectionStatus, string> = {
   connecting: 'Connecting to live updates…',
@@ -39,9 +40,12 @@ export function AppLayout() {
   return (
     <div className="min-h-screen md:flex">
       <aside className="flex flex-col gap-6 bg-slate-900 p-4 text-slate-200 md:min-h-screen md:w-60 md:shrink-0 print:hidden">
-        <div>
-          <p className="font-serif text-lg text-amber-200">{property.name}</p>
-          <p className="text-xs text-slate-400">Staff</p>
+        <div className="flex items-start justify-between gap-2">
+          <div>
+            <p className="font-serif text-lg text-amber-200">{property.name}</p>
+            <p className="text-xs text-slate-400">Staff</p>
+          </div>
+          <NotificationBell />
         </div>
 
         <nav aria-label="Main" className="flex flex-1 flex-col gap-4">

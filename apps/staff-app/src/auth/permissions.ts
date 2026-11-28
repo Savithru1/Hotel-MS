@@ -8,11 +8,14 @@ export interface NavItem {
   label: string;
   /** Roles that may open this page. The server enforces the same rules; this only hides links. */
   roles: readonly StaffRole[];
-  group: 'Front desk' | 'Operations' | 'Setup';
+  group: 'Manager' | 'Front desk' | 'Operations' | 'Setup';
 }
 
 /** Every page of the staff app and who may open it, in the order shown in the menu. */
 export const NAV_ITEMS: readonly NavItem[] = [
+  { path: '/manager', label: 'Dashboard', roles: MANAGEMENT, group: 'Manager' },
+  { path: '/manager/stats', label: 'Statistics', roles: MANAGEMENT, group: 'Manager' },
+  { path: '/audit', label: 'Audit log', roles: MANAGEMENT, group: 'Manager' },
   { path: '/front-desk', label: 'Today', roles: FRONT_DESK_TEAM, group: 'Front desk' },
   { path: '/bookings', label: 'Bookings', roles: FRONT_DESK_TEAM, group: 'Front desk' },
   { path: '/bookings/new', label: 'New booking', roles: FRONT_DESK_TEAM, group: 'Front desk' },
@@ -63,6 +66,7 @@ export function canOpen(role: StaffRole, path: string): boolean {
 
 /** The first page a person lands on after signing in. */
 export function homePathFor(role: StaffRole): string {
+  if (MANAGEMENT.includes(role)) return '/manager';
   if (role === 'housekeeping') return '/housekeeping';
   if (role === 'maintenance') return '/maintenance';
   if (role === 'kitchen') return '/kitchen';

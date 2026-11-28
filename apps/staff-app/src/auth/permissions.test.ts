@@ -84,7 +84,37 @@ describe('billing screens', () => {
   });
 });
 
+describe('manager screens', () => {
+  const MANAGER_PAGES = ['/manager', '/manager/stats', '/audit'];
+
+  it('are open to every management role and to no other role', () => {
+    for (const path of MANAGER_PAGES) {
+      for (const role of STAFF_ROLES) {
+        const management = ['manager', 'property_admin', 'platform_admin'].includes(role);
+        expect(canOpen(role, path), `${role} ${path}`).toBe(management);
+      }
+    }
+  });
+
+  it('sit together in a Manager menu group, shown to management only', () => {
+    for (const role of STAFF_ROLES) {
+      const grouped = navFor(role).filter((item) => item.group === 'Manager');
+      const expected = ['manager', 'property_admin', 'platform_admin'].includes(role)
+        ? MANAGER_PAGES
+        : [];
+      expect(grouped.map((item) => item.path)).toEqual(expected);
+    }
+  });
+});
+
 describe('landing page and role helpers', () => {
+  it('lands every management role on the manager dashboard', () => {
+    for (const role of ['manager', 'property_admin', 'platform_admin'] as const) {
+      expect(homePathFor(role)).toBe('/manager');
+    }
+    expect(homePathFor('front_desk')).toBe('/front-desk');
+  });
+
   it('lands the kitchen on the kitchen screen and spa staff on the spa screen', () => {
     expect(homePathFor('kitchen')).toBe('/kitchen');
     expect(homePathFor('spa_recreation')).toBe('/spa');

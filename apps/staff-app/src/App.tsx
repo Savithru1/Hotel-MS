@@ -22,6 +22,9 @@ import { KitchenPage } from './pages/kitchen/KitchenPage';
 import { ChangePasswordPage } from './pages/login/ChangePasswordPage';
 import { LoginPage } from './pages/login/LoginPage';
 import { MaintenancePage } from './pages/maintenance/MaintenancePage';
+import { DashboardPage } from './pages/manager/DashboardPage';
+import { StatsPage } from './pages/manager/StatsPage';
+import { AuditLogPage } from './pages/manager/AuditLogPage';
 import { MenuPage } from './pages/manager/MenuPage';
 import { PropertyPage } from './pages/manager/PropertyPage';
 import { RoomTypesPage } from './pages/manager/RoomTypesPage';
@@ -92,6 +95,9 @@ export function AppRoutes({ createSocket }: { createSocket?: SocketFactory }) {
           <Route index element={<HomeRedirect />} />
           <Route path="welcome" element={<WelcomePage />} />
           <Route path="account/password" element={<ChangePasswordPage />} />
+          {page('/manager', <DashboardPage />)}
+          {page('/manager/stats', <StatsPage />)}
+          {page('/audit', <AuditLogPage />)}
           {page('/front-desk', <FrontDeskPage />)}
           {page('/bookings', <BookingsPage />)}
           {page('/bookings/new', <NewBookingPage />)}

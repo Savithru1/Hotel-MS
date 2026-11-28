@@ -15,6 +15,7 @@ import {
   words,
 } from '../../components/ui';
 import { useToast } from '../../components/Toast';
+import { EditStaffDialog } from './EditStaffDialog';
 import { useList, useSend } from '../../hooks/queries';
 
 /** Shown once. The server never returns a temporary password again. */
@@ -115,6 +116,7 @@ export function StaffPage() {
   const people = useList<StaffDto>('/staff', { limit: 100 });
   const [creating, setCreating] = useState(false);
   const [shown, setShown] = useState<StaffWithTemporaryPassword | null>(null);
+  const [editing, setEditing] = useState<StaffDto | null>(null);
   const update = useSend<StaffDto, { id: string } & Record<string, unknown>>(
     'patch',
     (body) => `/staff/${body.id}`,
@@ -176,6 +178,14 @@ export function StaffPage() {
                           <Button
                             variant="quiet"
                             small
+                            aria-label={`Edit ${person.name}`}
+                            onClick={() => setEditing(person)}
+                          >
+                            Edit
+                          </Button>
+                          <Button
+                            variant="quiet"
+                            small
                             onClick={() =>
                               update.mutate(
                                 { id: person.id, active: !person.active },
@@ -216,6 +226,9 @@ export function StaffPage() {
             setShown(result);
           }}
         />
+      )}
+      {editing && (
+        <EditStaffDialog person={editing} actorRole={me.role} onClose={() => setEditing(null)} />
       )}
       {shown && <TemporaryPassword result={shown} onClose={() => setShown(null)} />}
     </div>

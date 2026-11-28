@@ -339,3 +339,8 @@ export function dateLabel(date: string): string {
 export function timeLabel(iso: string): string {
   return new Date(iso).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
 }
+
+/** A moment as a short local date and time, for "last updated" lines. */
+export function dateTimeLabel(iso: string): string {
+  return new Date(iso).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' });
+}
